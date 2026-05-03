@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { Logo } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 export default function PortalLayout({
   children,
@@ -21,7 +21,7 @@ export default function PortalLayout({
             onClick={() => router.push('/')}
           >
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Logo className="w-5 h-5 text-primary" />
+              <Shield className="w-5 h-5 text-primary" />
             </div>
             <span className="font-semibold text-foreground hidden sm:inline">ScopeGuard</span>
           </div>
