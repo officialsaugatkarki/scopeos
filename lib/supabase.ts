@@ -1,13 +1,24 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Check your .env.local file.');
-}
+let _supabase: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase: SupabaseClient = (() => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // During build time, return a dummy client that won't crash
+    // At runtime, the env vars will be available
+    if (typeof window === 'undefined') {
+      return createClient('https://placeholder.supabase.co', 'placeholder-key');
+    }
+    console.error('Missing Supabase environment variables. Check your .env.local file.');
+  }
+  if (!_supabase) {
+    _supabase = createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return _supabase;
+})();
 
 // ============================================================
 // Type definitions matching the database schema
