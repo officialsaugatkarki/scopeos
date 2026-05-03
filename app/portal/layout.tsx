@@ -1,6 +1,6 @@
 'use client';
 
-import { Card } from '@/components/ui/card';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Shield } from 'lucide-react';
@@ -16,6 +16,8 @@ export default function PortalLayout({
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <header className="sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-background/95 border-b border-border">
         <div className="container flex items-center justify-between h-16 px-4">
+          
+          {/* Logo / Home */}
           <div
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => router.push('/')}
@@ -23,9 +25,12 @@ export default function PortalLayout({
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Shield className="w-5 h-5 text-primary" />
             </div>
-            <span className="font-semibold text-foreground hidden sm:inline">ScopeGuard</span>
+            <span className="font-semibold text-foreground hidden sm:inline">
+              ScopeGuard
+            </span>
           </div>
 
+          {/* Auth Button */}
           <Button
             onClick={() => router.push('/login')}
             variant="outline"
@@ -36,7 +41,9 @@ export default function PortalLayout({
         </div>
       </header>
 
-      <main className="container py-8 px-4">{children}</main>
+      <main className="container py-8 px-4">
+        {children}
+      </main>
     </div>
   );
 }
