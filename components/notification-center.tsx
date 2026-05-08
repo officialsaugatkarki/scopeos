@@ -37,7 +37,7 @@ export default function NotificationCenter() {
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 glass-card-strong rounded-xl border border-white/[0.06] shadow-2xl z-50">
+        <div className="absolute right-0 mt-2 w-96 bg-[#0F1629] rounded-xl border border-white/[0.08] shadow-2xl shadow-black/50 z-50">
           <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
             <h3 className="font-semibold text-white">Notifications</h3>
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-6 w-6 text-white/30 hover:text-white/60">
