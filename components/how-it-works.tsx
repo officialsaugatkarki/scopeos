@@ -1,6 +1,5 @@
 'use client'
 
-import { ArrowRight } from 'lucide-react'
 import { useRef, useEffect, useState } from 'react'
 
 export default function HowItWorks() {
@@ -30,13 +29,13 @@ export default function HowItWorks() {
   ]
 
   return (
-    <section ref={ref} className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    <section ref={ref} className="py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 text-balance tracking-tight">
             How It Works
           </h2>
-          <p className="text-lg text-foreground/70 max-w-2xl mx-auto text-balance">
+          <p className="text-lg text-white/40 max-w-2xl mx-auto text-balance">
             Four simple steps to eliminate scope creep and protect your margins
           </p>
         </div>
@@ -50,7 +49,7 @@ export default function HowItWorks() {
                 <div key={index} className="relative">
                   {/* Step Circle */}
                   <div
-                    className={`w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xl mx-auto mb-4 transition-all duration-500 ${
+                    className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-white flex items-center justify-center font-bold text-xl mx-auto mb-4 transition-all duration-500 shadow-lg shadow-blue-500/20 ${
                       isVisible ? 'scale-100' : 'scale-0'
                     }`}
                     style={{ transitionDelay: `${index * 100}ms` }}
@@ -61,7 +60,7 @@ export default function HowItWorks() {
                   {/* Connecting Line */}
                   {index < steps.length - 1 && (
                     <div
-                      className={`absolute top-8 left-[60%] right-0 h-1 bg-gradient-to-r from-primary to-primary/30 transition-all duration-700 ${
+                      className={`absolute top-8 left-[60%] right-0 h-[2px] bg-gradient-to-r from-blue-500/50 to-blue-500/10 transition-all duration-700 ${
                         isVisible ? 'w-full' : 'w-0'
                       }`}
                       style={{ transitionDelay: `${index * 100 + 200}ms` }}
@@ -81,8 +80,8 @@ export default function HowItWorks() {
                   }`}
                   style={{ transitionDelay: `${index * 100 + 300}ms` }}
                 >
-                  <h3 className="font-semibold text-foreground mb-2">{step.title}</h3>
-                  <p className="text-sm text-foreground/70">{step.description}</p>
+                  <h3 className="font-semibold text-white mb-2">{step.title}</h3>
+                  <p className="text-sm text-white/40">{step.description}</p>
                 </div>
               ))}
             </div>
@@ -99,16 +98,16 @@ export default function HowItWorks() {
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/20">
                     {step.number}
                   </div>
                   {index < steps.length - 1 && (
-                    <div className="w-1 h-12 bg-primary/30 mt-2"></div>
+                    <div className="w-[2px] h-12 bg-gradient-to-b from-blue-500/40 to-transparent mt-2"></div>
                   )}
                 </div>
                 <div className="pb-6 pt-1">
-                  <h3 className="font-semibold text-foreground mb-1">{step.title}</h3>
-                  <p className="text-sm text-foreground/70">{step.description}</p>
+                  <h3 className="font-semibold text-white mb-1">{step.title}</h3>
+                  <p className="text-sm text-white/40">{step.description}</p>
                 </div>
               </div>
             ))}

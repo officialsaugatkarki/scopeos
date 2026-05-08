@@ -1,6 +1,5 @@
 'use client'
 
-import { Card } from '@/components/ui/card'
 import { useRef, useEffect, useState } from 'react'
 import { Star } from 'lucide-react'
 
@@ -48,18 +47,18 @@ export default function Testimonials() {
   ]
 
   return (
-    <section ref={ref} className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
+    <section ref={ref} className="py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 text-balance tracking-tight">
             Loved by Dev Agencies
           </h2>
-          <p className="text-lg text-foreground/70 max-w-2xl mx-auto text-balance">
+          <p className="text-lg text-white/40 max-w-2xl mx-auto text-balance">
             See how leading agencies are protecting their margins with ScopeGuard AI
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
@@ -68,9 +67,9 @@ export default function Testimonials() {
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
             >
-              <Card className="p-8 h-full bg-white hover:shadow-lg transition-all duration-300">
+              <div className="glass-card rounded-2xl p-8 h-full hover:border-white/10 transition-all duration-300">
                 {/* Stars */}
-                <div className="flex gap-1 mb-4">
+                <div className="flex gap-1 mb-5">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
@@ -80,25 +79,25 @@ export default function Testimonials() {
                 </div>
 
                 {/* Quote */}
-                <p className="text-foreground mb-6 leading-relaxed">
+                <p className="text-white/70 mb-6 leading-relaxed text-sm">
                   &quot;{testimonial.quote}&quot;
                 </p>
 
                 {/* Author */}
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-400/10 border border-blue-500/20 flex items-center justify-center text-sm font-semibold text-blue-400">
                     {testimonial.initials}
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground text-sm">
+                    <p className="font-semibold text-white text-sm">
                       {testimonial.author}
                     </p>
-                    <p className="text-xs text-foreground/60">
+                    <p className="text-xs text-white/40">
                       {testimonial.role}, {testimonial.company}
                     </p>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
           ))}
         </div>

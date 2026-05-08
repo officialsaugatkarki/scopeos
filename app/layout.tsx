@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ToastProvider } from '@/components/toast-provider'
 import { CookieBanner } from '@/components/cookie-banner'
@@ -8,6 +9,7 @@ import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: 'ScopeGuard AI - Stop Losing Money on Scope Creep',
@@ -38,8 +40,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background scroll-smooth">
-      <body className="font-sans antialiased">
+    <html lang="en" className={`dark bg-background scroll-smooth ${inter.variable}`}>
+      <body className="font-sans antialiased bg-[#050A18] text-white/90">
         <ToastProvider />
         <CookieBanner />
         <HelpWidget />

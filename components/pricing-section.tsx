@@ -1,7 +1,6 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Check } from 'lucide-react'
 import { useRef, useEffect, useState } from 'react'
@@ -76,18 +75,18 @@ export default function PricingSection() {
   ]
 
   return (
-    <section id="pricing" ref={ref} className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    <section id="pricing" ref={ref} className="py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 text-balance tracking-tight">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-lg text-foreground/70 max-w-2xl mx-auto text-balance">
+          <p className="text-lg text-white/40 max-w-2xl mx-auto text-balance">
             Choose the plan that works for your agency. No hidden fees.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-5">
           {plans.map((plan, index) => (
             <div
               key={index}
@@ -96,40 +95,45 @@ export default function PricingSection() {
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
             >
-              <Card
-                className={`p-8 h-full flex flex-col transition-all duration-300 ${
+              <div
+                className={`rounded-2xl p-8 h-full flex flex-col transition-all duration-300 ${
                   plan.popular
-                    ? 'bg-gradient-to-br from-primary/5 to-accent/5 border-2 border-accent shadow-lg scale-100 md:scale-105'
-                    : 'bg-white hover:shadow-md'
+                    ? 'glass-card-strong border-blue-500/30 border glow-border relative md:scale-105'
+                    : 'glass-card hover:border-white/10'
                 }`}
               >
                 {plan.popular && (
-                  <Badge className="w-fit mb-4 bg-accent text-accent-foreground">
-                    Most Popular
-                  </Badge>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white border-0 px-4 py-1 text-xs font-medium shadow-lg shadow-blue-500/20">
+                      Most Popular
+                    </Badge>
+                  </div>
                 )}
 
-                <h3 className="text-2xl font-bold text-foreground mb-2">
+                <h3 className="text-2xl font-bold text-white mb-2">
                   {plan.name}
                 </h3>
-                <p className="text-foreground/70 text-sm mb-6">
+                <p className="text-white/40 text-sm mb-6">
                   {plan.description}
                 </p>
 
                 {/* Price */}
                 <div className="mb-8">
-                  <span className="text-5xl font-bold text-foreground">
+                  <span className="text-5xl font-bold text-white">
                     {plan.price}
                   </span>
-                  <span className="text-foreground/60 ml-2">
+                  <span className="text-white/40 ml-2">
                     {plan.period}
                   </span>
                 </div>
 
                 {/* CTA */}
                 <Button
-                  className="w-full mb-8"
-                  variant={plan.popular ? 'default' : 'outline'}
+                  className={`w-full mb-8 rounded-xl h-11 font-medium ${
+                    plan.popular
+                      ? 'btn-gradient text-white border-0'
+                      : 'bg-white/[0.04] border border-white/10 text-white hover:bg-white/[0.08]'
+                  }`}
                   size="lg"
                 >
                   {plan.cta}
@@ -139,20 +143,22 @@ export default function PricingSection() {
                 <div className="space-y-4 flex-grow">
                   {plan.features.map((feature, i) => (
                     <div key={i} className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground/80 text-sm">{feature}</span>
+                      <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Check className="w-3 h-3 text-blue-400" />
+                      </div>
+                      <span className="text-white/50 text-sm">{feature}</span>
                     </div>
                   ))}
                 </div>
-              </Card>
+              </div>
             </div>
           ))}
         </div>
 
         {/* FAQ Note */}
         <div className="text-center mt-12">
-          <p className="text-foreground/70">
-            All plans include a <span className="font-semibold">14-day free trial</span>. No credit card required.
+          <p className="text-white/40">
+            All plans include a <span className="font-semibold text-white/60">14-day free trial</span>. No credit card required.
           </p>
         </div>
       </div>
