@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle, FileText, Sparkles } from 'lucide-react'
 import { useRef, useEffect, useState } from 'react'
+import Image from 'next/image'
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)

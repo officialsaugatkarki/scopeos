@@ -9,58 +9,40 @@ export function HelpWidget() {
 
   return (
     <>
-      {/* Floating Help Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-white shadow-lg hover:shadow-xl transition-all hover:scale-110 flex items-center justify-center z-40"
-        aria-label="Open help"
-      >
+      <button onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-110 flex items-center justify-center z-40"
+        aria-label="Open help">
         <HelpCircle size={24} />
       </button>
 
-      {/* Help Widget Panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-80 rounded-lg shadow-2xl bg-background border border-border z-40 animate-in slide-in-from-bottom-4">
-          {/* Header */}
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <h3 className="font-semibold text-foreground">How can we help?</h3>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-muted rounded transition-colors"
-              aria-label="Close help widget"
-            >
+        <div className="fixed bottom-24 right-6 w-80 rounded-xl shadow-2xl glass-card-strong border border-white/[0.06] z-40 slide-in-from-bottom-4">
+          <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+            <h3 className="font-semibold text-white">How can we help?</h3>
+            <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/[0.04] rounded transition-colors text-white/30 hover:text-white/60" aria-label="Close help widget">
               <X size={20} />
             </button>
           </div>
 
-          {/* Search */}
-          <div className="p-4 border-b border-border">
-            <input
-              type="text"
-              placeholder="Search help..."
-              className="w-full px-3 py-2 text-sm border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+          <div className="p-4 border-b border-white/[0.06]">
+            <input type="text" placeholder="Search help..."
+              className="w-full px-3 py-2 text-sm dark-input rounded-lg" />
           </div>
 
-          {/* Quick Links */}
-          <div className="p-4 space-y-2">
-            <Button variant="ghost" className="w-full justify-start gap-2 text-sm">
-              <BookOpen size={16} />
-              Documentation
+          <div className="p-4 space-y-1">
+            <Button variant="ghost" className="w-full justify-start gap-2 text-sm text-white/50 hover:text-white hover:bg-white/[0.04]">
+              <BookOpen size={16} className="text-blue-400" /> Documentation
             </Button>
-            <Button variant="ghost" className="w-full justify-start gap-2 text-sm">
-              <MessageSquare size={16} />
-              Contact Support
+            <Button variant="ghost" className="w-full justify-start gap-2 text-sm text-white/50 hover:text-white hover:bg-white/[0.04]">
+              <MessageSquare size={16} className="text-blue-400" /> Contact Support
             </Button>
-            <Button variant="ghost" className="w-full justify-start gap-2 text-sm">
-              <Send size={16} />
-              Request Feature
+            <Button variant="ghost" className="w-full justify-start gap-2 text-sm text-white/50 hover:text-white hover:bg-white/[0.04]">
+              <Send size={16} className="text-blue-400" /> Request Feature
             </Button>
           </div>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-border bg-muted/50">
-            <p className="text-xs text-muted-foreground text-center">Average response time: 24 hours</p>
+          <div className="p-4 border-t border-white/[0.06] bg-white/[0.01]">
+            <p className="text-xs text-white/20 text-center">Average response time: 24 hours</p>
           </div>
         </div>
       )}

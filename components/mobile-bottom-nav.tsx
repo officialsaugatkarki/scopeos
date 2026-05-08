@@ -2,14 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard,
-  FolderOpen,
-  Inbox,
-  CheckSquare,
-  BarChart3,
-  Settings,
-} from 'lucide-react';
+import { LayoutDashboard, FolderOpen, Inbox, CheckSquare, BarChart3, Settings } from 'lucide-react';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Home', href: '/dashboard' },
@@ -24,22 +17,16 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t border-border md:hidden z-40">
+    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-[#0A0F1C]/95 backdrop-blur-xl border-t border-white/[0.04] md:hidden z-40">
       <div className="flex h-full items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
-
           return (
-            <Link
-              key={item.href}
-              href={item.href}
+            <Link key={item.href} href={item.href}
               className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${
-                isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
+                isActive ? 'text-blue-400' : 'text-white/30 hover:text-white/50'
+              }`}>
               <Icon size={24} />
               <span className="text-xs font-medium">{item.label}</span>
             </Link>

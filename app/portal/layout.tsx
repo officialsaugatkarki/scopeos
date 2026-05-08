@@ -1,49 +1,28 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { Shield } from 'lucide-react';
 
-export default function PortalLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PortalLayout({ children }: { children: React.ReactNode; }) {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-background/95 border-b border-border">
+    <div className="min-h-screen bg-[#050A18]">
+      <header className="sticky top-0 z-50 bg-[#0A0F1C]/80 backdrop-blur-xl border-b border-white/[0.04]">
         <div className="container flex items-center justify-between h-16 px-4">
-          
-          {/* Logo / Home */}
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => router.push('/')}
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary" />
-            </div>
-            <span className="font-semibold text-foreground hidden sm:inline">
-              ScopeGuard
-            </span>
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/')}>
+            <Image src="/logo.png" alt="ScopeGuard" width={32} height={32} className="rounded-lg" />
+            <span className="font-semibold text-white/90 hidden sm:inline text-sm">ScopeGuard</span>
           </div>
-
-          {/* Auth Button */}
-          <Button
-            onClick={() => router.push('/login')}
-            variant="outline"
-            size="sm"
-          >
+          <Button onClick={() => router.push('/login')} variant="outline" size="sm"
+            className="border-white/[0.06] bg-white/[0.02] text-white/60 hover:bg-white/[0.06] hover:text-white">
             Log in as PM
           </Button>
         </div>
       </header>
-
-      <main className="container py-8 px-4">
-        {children}
-      </main>
+      <main className="container py-8 px-4">{children}</main>
     </div>
   );
 }

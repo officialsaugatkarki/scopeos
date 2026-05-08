@@ -14,23 +14,19 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 export const metadata: Metadata = {
   title: 'ScopeGuard AI - Stop Losing Money on Scope Creep',
   description: 'AI-powered scope management tool for dev agencies. Turn client chaos into clear, billable tasks—automatically.',
-  generator: 'v0.app',
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: '/logo.png',
+        type: 'image/png',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/logo.png',
+  },
+  openGraph: {
+    title: 'ScopeGuard AI - Stop Losing Money on Scope Creep',
+    description: 'AI-powered scope management tool for dev agencies.',
+    images: ['/logo.png'],
   },
 }
 

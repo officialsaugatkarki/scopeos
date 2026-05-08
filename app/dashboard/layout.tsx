@@ -10,7 +10,6 @@ import { getSession, initAuth } from '@/lib/auth';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -31,21 +30,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-[#050A18]">
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex">
-        <DashboardSidebar isCollapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
-      </div>
+      <DashboardSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardNavbar />
-        <main className="flex-1 overflow-auto pb-20 lg:pb-0">
+        <main className="flex-1 overflow-auto pb-20 md:pb-0">
           <div className="p-4 md:p-6">
             {children}
           </div>
         </main>
       </div>
       {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden">
+      <div className="md:hidden">
         <MobileBottomNav />
       </div>
     </div>

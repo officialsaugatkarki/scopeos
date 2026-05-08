@@ -23,13 +23,8 @@ export default function ProjectPortalPage() {
   useEffect(() => {
     setMounted(true);
     const loadData = async () => {
-      const [proj, reqs] = await Promise.all([
-        getProject(projectId),
-        getScopeRequests(projectId),
-      ]);
-      setProject(proj);
-      setRequests(reqs);
-      setIsLoading(false);
+      const [proj, reqs] = await Promise.all([getProject(projectId), getScopeRequests(projectId)]);
+      setProject(proj); setRequests(reqs); setIsLoading(false);
     };
     loadData();
   }, [projectId]);
@@ -40,8 +35,8 @@ export default function ProjectPortalPage() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-muted rounded w-1/3 mb-2"></div>
-          <div className="h-4 bg-muted rounded w-1/2"></div>
+          <div className="h-8 bg-white/[0.04] rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-white/[0.04] rounded w-1/2"></div>
         </div>
       </div>
     );
@@ -50,16 +45,11 @@ export default function ProjectPortalPage() {
   if (!project) {
     return (
       <div className="space-y-6">
-        <Button
-          onClick={() => router.back()}
-          variant="ghost"
-          className="gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
+        <Button onClick={() => router.back()} variant="ghost" className="gap-2 text-white/40 hover:text-white">
+          <ArrowLeft className="w-4 h-4" /> Back
         </Button>
-        <Card className="p-8 text-center">
-          <p className="text-muted-foreground mb-4">Project not found</p>
+        <Card className="glass-card rounded-xl p-8 text-center">
+          <p className="text-white/30 mb-4">Project not found</p>
         </Card>
       </div>
     );
@@ -76,181 +66,123 @@ export default function ProjectPortalPage() {
 
   const handleSubmit = async (data: { title: string; description: string; attachments: string[] }) => {
     const newRequest = await createScopeRequest({
-      project_id: projectId,
-      client_name: 'Portal User',
-      client_email: '',
-      title: data.title,
-      description: data.description,
-      attachments: data.attachments,
+      project_id: projectId, client_name: 'Portal User', client_email: '',
+      title: data.title, description: data.description, attachments: data.attachments,
     });
-
     if (newRequest) {
-      // Refresh requests list
       const updatedRequests = await getScopeRequests(projectId);
-      setRequests(updatedRequests);
-      setActiveTab('view');
+      setRequests(updatedRequests); setActiveTab('view');
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Button
-          onClick={() => router.push('/portal')}
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-        >
+        <Button onClick={() => router.push('/portal')} variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/[0.04]">
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
-          <p className="text-muted-foreground">{project.description}</p>
+          <h1 className="text-3xl font-bold text-white">{project.name}</h1>
+          <p className="text-white/40">{project.description}</p>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 bg-emerald-50 border-emerald-200">
+        <Card className="glass-card rounded-xl p-4 border-emerald-500/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-600/10 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">In Scope</p>
-              <p className="text-2xl font-bold text-emerald-600">{stats.inScope}</p>
+              <p className="text-xs text-white/30">In Scope</p>
+              <p className="text-2xl font-bold text-emerald-400">{stats.inScope}</p>
             </div>
           </div>
         </Card>
-
-        <Card className="p-4 bg-red-50 border-red-200">
+        <Card className="glass-card rounded-xl p-4 border-red-500/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center">
-              <XCircle className="w-5 h-5 text-red-600" />
+            <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+              <XCircle className="w-5 h-5 text-red-400" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Out of Scope</p>
-              <p className="text-2xl font-bold text-red-600">{stats.outOfScope}</p>
+              <p className="text-xs text-white/30">Out of Scope</p>
+              <p className="text-2xl font-bold text-red-400">{stats.outOfScope}</p>
             </div>
           </div>
         </Card>
-
-        <Card className="p-4 bg-amber-50 border-amber-200">
+        <Card className="glass-card rounded-xl p-4 border-amber-500/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-600/10 flex items-center justify-center">
-              <HelpCircle className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+              <HelpCircle className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Needs Clarification</p>
-              <p className="text-2xl font-bold text-amber-600">{stats.needsInfo}</p>
+              <p className="text-xs text-white/30">Needs Clarification</p>
+              <p className="text-2xl font-bold text-amber-400">{stats.needsInfo}</p>
             </div>
           </div>
         </Card>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border">
-        <button
-          onClick={() => setActiveTab('submit')}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === 'submit'
-              ? 'text-primary border-b-2 border-b-primary -mb-[2px]'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
+      <div className="flex gap-2 border-b border-white/[0.06]">
+        <button onClick={() => setActiveTab('submit')}
+          className={`px-4 py-2 font-medium text-sm transition-colors ${activeTab === 'submit' ? 'text-blue-400 border-b-2 border-b-blue-400 -mb-[2px]' : 'text-white/40 hover:text-white/60'}`}>
           Submit New Request
         </button>
-        <button
-          onClick={() => setActiveTab('view')}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === 'view'
-              ? 'text-primary border-b-2 border-b-primary -mb-[2px]'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
+        <button onClick={() => setActiveTab('view')}
+          className={`px-4 py-2 font-medium text-sm transition-colors ${activeTab === 'view' ? 'text-blue-400 border-b-2 border-b-blue-400 -mb-[2px]' : 'text-white/40 hover:text-white/60'}`}>
           View Previous Requests ({requests.length})
         </button>
       </div>
 
       {/* Submit Form */}
       {activeTab === 'submit' && (
-        <RequestSubmissionForm
-          projectId={projectId}
-          projectName={project.name}
-          onSubmit={handleSubmit}
-        />
+        <RequestSubmissionForm projectId={projectId} projectName={project.name} onSubmit={handleSubmit} />
       )}
 
       {/* Request List */}
       {activeTab === 'view' && (
         <div className="space-y-4">
           {requests.length === 0 ? (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground mb-4">No previous requests yet</p>
-              <Button onClick={() => setActiveTab('submit')}>Submit Your First Request</Button>
+            <Card className="glass-card rounded-xl p-12 text-center">
+              <p className="text-white/30 mb-4">No previous requests yet</p>
+              <Button onClick={() => setActiveTab('submit')} className="btn-gradient text-white border-0 rounded-xl">Submit Your First Request</Button>
             </Card>
           ) : (
             requests.map((request) => (
-              <Card
-                key={request.id}
-                className="p-6 hover:shadow-md transition-all border-l-4"
-                style={{
-                  borderLeftColor:
-                    request.status === 'clarification'
-                      ? '#f59e0b'
-                      : request.status === 'decision'
-                      ? '#10b981'
-                      : '#3b82f6',
-                }}
-              >
+              <Card key={request.id}
+                className="glass-card rounded-xl p-6 hover:border-white/10 transition-all border-l-4"
+                style={{ borderLeftColor: request.status === 'clarification' ? '#f59e0b' : request.status === 'decision' ? '#10b981' : '#3b82f6' }}>
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">
-                        {request.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Submitted on{' '}
-                        {new Date(request.submitted_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
+                      <h3 className="font-semibold text-white mb-1">{request.title}</h3>
+                      <p className="text-sm text-white/40">
+                        Submitted on {new Date(request.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </p>
                     </div>
-                    {request.ai_analysis && (
-                      <ScopeDecisionBadge decision={request.ai_analysis.decision} />
-                    )}
+                    {request.ai_analysis && <ScopeDecisionBadge decision={request.ai_analysis.decision} />}
                   </div>
-
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {request.description}
-                  </p>
-
+                  <p className="text-sm text-white/40 line-clamp-2">{request.description}</p>
                   {request.ai_analysis && (
-                    <div className="p-3 bg-muted rounded text-sm">
-                      <p className="text-muted-foreground">
-                        <span className="font-medium text-foreground">Decision:</span>{' '}
-                        {Array.isArray(request.ai_analysis.reasoning) 
-                          ? request.ai_analysis.reasoning.join('. ')
-                          : request.ai_analysis.reasoning}
+                    <div className="p-3 bg-white/[0.02] rounded-lg border border-white/[0.04] text-sm">
+                      <p className="text-white/40">
+                        <span className="font-medium text-white/60">Decision:</span>{' '}
+                        {Array.isArray(request.ai_analysis.reasoning) ? request.ai_analysis.reasoning.join('. ') : request.ai_analysis.reasoning}
                       </p>
                     </div>
                   )}
-
-                  {request.status === 'clarification' &&
-                    request.ai_analysis?.clarificationQuestions && (
-                      <Card className="p-4 bg-amber-50 border-amber-200">
-                        <p className="font-medium text-sm text-foreground mb-2">
-                          Questions Need Answering:
-                        </p>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {request.ai_analysis.clarificationQuestions.map((q, idx) => (
-                            <li key={idx}>• {typeof q === 'string' ? q : q.question}</li>
-                          ))}
-                        </ul>
-                      </Card>
-                    )}
+                  {request.status === 'clarification' && request.ai_analysis?.clarificationQuestions && (
+                    <Card className="glass-card rounded-lg p-4 border-amber-500/10">
+                      <p className="font-medium text-sm text-white/70 mb-2">Questions Need Answering:</p>
+                      <ul className="text-sm text-white/40 space-y-1">
+                        {request.ai_analysis.clarificationQuestions.map((q, idx) => (
+                          <li key={idx}>• {typeof q === 'string' ? q : q.question}</li>
+                        ))}
+                      </ul>
+                    </Card>
+                  )}
                 </div>
               </Card>
             ))

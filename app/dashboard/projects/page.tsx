@@ -25,10 +25,7 @@ export default function ProjectsPage() {
     setMounted(true);
     const loadData = async () => {
       const userId = await getCurrentUserId();
-      if (userId) {
-        const projs = await getProjects(userId);
-        setProjects(projs);
-      }
+      if (userId) { const projs = await getProjects(userId); setProjects(projs); }
       setIsLoading(false);
     };
     loadData();
@@ -37,23 +34,17 @@ export default function ProjectsPage() {
   if (!mounted) return null;
 
   const filteredProjects = projects.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.client_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.client_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-emerald-100 text-emerald-800';
-      case 'paused':
-        return 'bg-amber-100 text-amber-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      case 'paused': return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      case 'completed': return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+      default: return 'bg-white/5 text-white/50';
     }
   };
 
@@ -63,94 +54,44 @@ export default function ProjectsPage() {
   };
 
   const ListViewCard = ({ project }: { project: Project }) => (
-    <Card
-      className="p-6 hover:shadow-md transition-all cursor-pointer"
-      onClick={() => router.push(`/dashboard/projects/${project.id}`)}
-    >
+    <Card className="glass-card rounded-xl p-6 hover:border-white/10 transition-all cursor-pointer glow-border-hover" onClick={() => router.push(`/dashboard/projects/${project.id}`)}>
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-foreground truncate">
-            {project.name}
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Client: {project.client_name}
-          </p>
+          <h3 className="text-lg font-semibold text-white truncate">{project.name}</h3>
+          <p className="text-sm text-white/40 mt-1">Client: {project.client_name}</p>
         </div>
-        <Badge className={getStatusColor(project.status)}>
-          {project.status}
-        </Badge>
+        <Badge className={getStatusColor(project.status)}>{project.status}</Badge>
       </div>
-
-      <p className="text-sm text-muted-foreground mb-4">
-        {project.description}
-      </p>
-
+      <p className="text-sm text-white/40 mb-4">{project.description}</p>
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">Requests</p>
-          <p className="text-lg font-semibold">{project.request_count}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">Tasks</p>
-          <p className="text-lg font-semibold">{project.task_count}</p>
-        </div>
+        <div><p className="text-xs text-white/30 mb-1">Requests</p><p className="text-lg font-semibold text-white">{project.request_count}</p></div>
+        <div><p className="text-xs text-white/30 mb-1">Tasks</p><p className="text-lg font-semibold text-white">{project.task_count}</p></div>
       </div>
-
       <div>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-muted-foreground">Budget Usage</p>
-          <p className="text-xs font-medium">${project.spent.toLocaleString()} / ${project.budget.toLocaleString()}</p>
+          <p className="text-xs text-white/30">Budget Usage</p>
+          <p className="text-xs font-medium text-white/60">${project.spent.toLocaleString()} / ${project.budget.toLocaleString()}</p>
         </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary transition-all"
-            style={{ width: `${getBudgetUsage(project)}%` }}
-          />
+        <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
+          <div className="h-full bg-blue-500 transition-all rounded-full" style={{ width: `${getBudgetUsage(project)}%` }} />
         </div>
       </div>
     </Card>
   );
 
   const GridViewCard = ({ project }: { project: Project }) => (
-    <Card
-      className="p-6 hover:shadow-md transition-all cursor-pointer flex flex-col h-full"
-      onClick={() => router.push(`/dashboard/projects/${project.id}`)}
-    >
+    <Card className="glass-card rounded-xl p-6 hover:border-white/10 transition-all cursor-pointer flex flex-col h-full glow-border-hover" onClick={() => router.push(`/dashboard/projects/${project.id}`)}>
       <div className="flex items-start justify-between gap-2 mb-4">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-foreground truncate">
-            {project.name}
-          </h3>
-        </div>
-        <Badge className={`${getStatusColor(project.status)} text-xs whitespace-nowrap`}>
-          {project.status}
-        </Badge>
+        <div className="flex-1 min-w-0"><h3 className="text-base font-semibold text-white truncate">{project.name}</h3></div>
+        <Badge className={`${getStatusColor(project.status)} text-xs whitespace-nowrap`}>{project.status}</Badge>
       </div>
-
-      <p className="text-xs text-muted-foreground mb-3">
-        {project.client_name}
-      </p>
-
+      <p className="text-xs text-white/40 mb-3">{project.client_name}</p>
       <div className="space-y-3 mb-4 flex-1">
-        <div className="flex justify-between items-center text-xs">
-          <span className="text-muted-foreground">Requests</span>
-          <span className="font-semibold">{project.request_count}</span>
-        </div>
-        <div className="flex justify-between items-center text-xs">
-          <span className="text-muted-foreground">Tasks</span>
-          <span className="font-semibold">{project.task_count}</span>
-        </div>
+        <div className="flex justify-between items-center text-xs"><span className="text-white/30">Requests</span><span className="font-semibold text-white/70">{project.request_count}</span></div>
+        <div className="flex justify-between items-center text-xs"><span className="text-white/30">Tasks</span><span className="font-semibold text-white/70">{project.task_count}</span></div>
         <div>
-          <div className="flex justify-between items-center text-xs mb-1">
-            <span className="text-muted-foreground">Budget</span>
-            <span className="font-semibold">{getBudgetUsage(project)}%</span>
-          </div>
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary"
-              style={{ width: `${getBudgetUsage(project)}%` }}
-            />
-          </div>
+          <div className="flex justify-between items-center text-xs mb-1"><span className="text-white/30">Budget</span><span className="font-semibold text-white/70">{getBudgetUsage(project)}%</span></div>
+          <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${getBudgetUsage(project)}%` }} /></div>
         </div>
       </div>
     </Card>
@@ -159,18 +100,9 @@ export default function ProjectsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6 animate-in fade-in duration-500">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Projects</h1>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <div><h1 className="text-3xl font-bold text-white mb-2">Projects</h1><p className="text-white/40">Loading...</p></div>
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="p-6 animate-pulse">
-              <div className="h-5 bg-muted rounded w-1/3 mb-3"></div>
-              <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
-              <div className="h-2 bg-muted rounded w-full"></div>
-            </Card>
-          ))}
+          {[1, 2, 3].map((i) => (<Card key={i} className="glass-card rounded-xl p-6 animate-pulse"><div className="h-5 bg-white/[0.04] rounded w-1/3 mb-3"></div><div className="h-4 bg-white/[0.04] rounded w-1/2 mb-4"></div><div className="h-2 bg-white/[0.04] rounded w-full"></div></Card>))}
         </div>
       </div>
     );
@@ -179,33 +111,19 @@ export default function ProjectsPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Projects</h1>
-          <p className="text-muted-foreground">
-            Manage all your agency projects and track scope creep
-          </p>
-        </div>
-        <Button onClick={() => router.push('/dashboard/projects/new')}>
-          <Plus className="w-4 h-4 mr-2" />
-          New Project
-        </Button>
+        <div><h1 className="text-3xl font-bold text-white mb-2">Projects</h1><p className="text-white/40">Manage all your agency projects and track scope creep</p></div>
+        <Button onClick={() => router.push('/dashboard/projects/new')} className="btn-gradient text-white border-0 rounded-xl"><Plus className="w-4 h-4 mr-2" />New Project</Button>
       </div>
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search projects..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/30" />
+            <Input placeholder="Search projects..." className="pl-10 dark-input rounded-xl" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
-
           <div className="flex items-center gap-2">
             <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-              <TabsList>
+              <TabsList className="bg-white/[0.03] border border-white/[0.06] rounded-xl">
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="active">Active</TabsTrigger>
                 <TabsTrigger value="paused">Paused</TabsTrigger>
@@ -213,55 +131,22 @@ export default function ProjectsPage() {
               </TabsList>
             </Tabs>
           </div>
-
-          <div className="flex items-center border rounded-lg">
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 ${
-                viewMode === 'list'
-                  ? 'bg-muted text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 ${
-                viewMode === 'grid'
-                  ? 'bg-muted text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
+          <div className="flex items-center border border-white/[0.06] rounded-lg overflow-hidden">
+            <button onClick={() => setViewMode('list')} className={`p-2 ${viewMode === 'list' ? 'bg-white/[0.06] text-white' : 'text-white/30 hover:text-white/60'}`}><List className="w-4 h-4" /></button>
+            <button onClick={() => setViewMode('grid')} className={`p-2 ${viewMode === 'grid' ? 'bg-white/[0.06] text-white' : 'text-white/30 hover:text-white/60'}`}><LayoutGrid className="w-4 h-4" /></button>
           </div>
         </div>
       </div>
 
       {filteredProjects.length === 0 ? (
-        <Card className="p-12 text-center">
-          <p className="text-muted-foreground mb-4">No projects found</p>
-          <Button onClick={() => router.push('/dashboard/projects/new')}>
-            Create Your First Project
-          </Button>
+        <Card className="glass-card rounded-xl p-12 text-center">
+          <p className="text-white/30 mb-4">No projects found</p>
+          <Button onClick={() => router.push('/dashboard/projects/new')} className="btn-gradient text-white border-0 rounded-xl">Create Your First Project</Button>
         </Card>
       ) : (
-        <div
-          className={
-            viewMode === 'list'
-              ? 'space-y-4'
-              : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-          }
-        >
+        <div className={viewMode === 'list' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}>
           {filteredProjects.map((project) => (
-            <div key={project.id}>
-              {viewMode === 'list' ? (
-                <ListViewCard project={project} />
-              ) : (
-                <GridViewCard project={project} />
-              )}
-            </div>
+            <div key={project.id}>{viewMode === 'list' ? <ListViewCard project={project} /> : <GridViewCard project={project} />}</div>
           ))}
         </div>
       )}

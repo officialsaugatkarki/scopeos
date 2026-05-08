@@ -25,14 +25,8 @@ export default function RequestsPage() {
       setMounted(true);
       const userId = await getCurrentUserId();
       if (!userId) return;
-      
-      const [reqs, projs] = await Promise.all([
-        getScopeRequests(),
-        getProjects(userId),
-      ]);
-      setRequests(reqs);
-      setProjects(projs);
-      setIsLoading(false);
+      const [reqs, projs] = await Promise.all([getScopeRequests(), getProjects(userId)]);
+      setRequests(reqs); setProjects(projs); setIsLoading(false);
     };
     loadData();
   }, []);
@@ -41,27 +35,15 @@ export default function RequestsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'submitted':
-      case 'reviewing':
-        return <Clock className="w-4 h-4 text-blue-600" />;
-      case 'clarification':
-        return <HelpCircle className="w-4 h-4 text-amber-600" />;
-      case 'decision':
-      case 'completed':
-        return <CheckCircle2 className="w-4 h-4 text-emerald-600" />;
-      default:
-        return <AlertCircle className="w-4 h-4 text-gray-600" />;
+      case 'submitted': case 'reviewing': return <Clock className="w-4 h-4 text-blue-400" />;
+      case 'clarification': return <HelpCircle className="w-4 h-4 text-amber-400" />;
+      case 'decision': case 'completed': return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
+      default: return <AlertCircle className="w-4 h-4 text-white/30" />;
     }
   };
 
   const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      submitted: 'Submitted',
-      reviewing: 'Reviewing',
-      clarification: 'Clarification',
-      decision: 'Decision',
-      completed: 'Completed',
-    };
+    const labels: Record<string, string> = { submitted: 'Submitted', reviewing: 'Reviewing', clarification: 'Clarification', decision: 'Decision', completed: 'Completed' };
     return labels[status] || status;
   };
 
@@ -73,27 +55,17 @@ export default function RequestsPage() {
     return true;
   });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   if (isLoading) {
     return (
       <div className="space-y-6 animate-in fade-in duration-500">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Scope Requests</h1>
-          <p className="text-muted-foreground">Loading...</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Scope Requests</h1>
+          <p className="text-white/40">Loading...</p>
         </div>
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="p-4 animate-pulse">
-              <div className="h-4 bg-muted rounded w-1/3 mb-2"></div>
-              <div className="h-3 bg-muted rounded w-1/2"></div>
-            </Card>
-          ))}
+          {[1, 2, 3].map((i) => (<Card key={i} className="glass-card rounded-xl p-4 animate-pulse"><div className="h-4 bg-white/[0.04] rounded w-1/3 mb-2"></div><div className="h-3 bg-white/[0.04] rounded w-1/2"></div></Card>))}
         </div>
       </div>
     );
@@ -102,14 +74,12 @@ export default function RequestsPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Scope Requests</h1>
-        <p className="text-muted-foreground">
-          Review and manage client requests with AI-powered scope analysis
-        </p>
+        <h1 className="text-3xl font-bold text-white mb-2">Scope Requests</h1>
+        <p className="text-white/40">Review and manage client requests with AI-powered scope analysis</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-4 bg-white/[0.03] border border-white/[0.06] rounded-xl">
           <TabsTrigger value="all">All Requests</TabsTrigger>
           <TabsTrigger value="pending">Pending ({requests.filter((r) => ['submitted', 'reviewing'].includes(r.status)).length})</TabsTrigger>
           <TabsTrigger value="clarification">Clarification ({requests.filter((r) => r.status === 'clarification').length})</TabsTrigger>
@@ -118,64 +88,38 @@ export default function RequestsPage() {
 
         <TabsContent value={activeTab} className="space-y-4 mt-6">
           {filteredRequests.length === 0 ? (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground mb-4">No requests found</p>
-              <Button variant="outline">Create New Request</Button>
+            <Card className="glass-card rounded-xl p-12 text-center">
+              <p className="text-white/30 mb-4">No requests found</p>
+              <Button variant="outline" className="border-white/[0.06] bg-white/[0.02] text-white/60">Create New Request</Button>
             </Card>
           ) : (
             <div className="space-y-4">
               {filteredRequests.map((request) => {
                 const project = projects.find((p) => p.id === request.project_id);
                 const decision = request.ai_analysis?.decision;
-
                 return (
-                  <Card
-                    key={request.id}
-                    className="p-4 hover:shadow-md transition-all cursor-pointer border-l-4"
+                  <Card key={request.id}
+                    className="glass-card rounded-xl p-4 hover:border-white/10 transition-all cursor-pointer border-l-4"
                     onClick={() => router.push(`/dashboard/requests/${request.id}`)}
-                    style={{
-                      borderLeftColor:
-                        request.status === 'clarification'
-                          ? '#f59e0b'
-                          : request.status === 'decision' || request.status === 'completed'
-                          ? '#10b981'
-                          : '#3b82f6',
-                    }}
-                  >
+                    style={{ borderLeftColor: request.status === 'clarification' ? '#f59e0b' : request.status === 'decision' || request.status === 'completed' ? '#10b981' : '#3b82f6' }}>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div className="col-span-1 md:col-span-2">
                         <div className="flex items-start gap-3">
                           {getStatusIcon(request.status)}
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-foreground truncate">
-                              {request.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {project?.name} • From {request.client_name}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {formatDate(request.submitted_at)}
-                            </p>
+                            <h3 className="font-semibold text-white truncate">{request.title}</h3>
+                            <p className="text-sm text-white/40">{project?.name} • From {request.client_name}</p>
+                            <p className="text-xs text-white/30 mt-1">{formatDate(request.submitted_at)}</p>
                           </div>
                         </div>
                       </div>
-
                       <div className="col-span-1">
-                        <p className="text-xs text-muted-foreground mb-1">Status</p>
-                        <Badge variant="outline" className="text-xs">
-                          {getStatusLabel(request.status)}
-                        </Badge>
+                        <p className="text-xs text-white/30 mb-1">Status</p>
+                        <Badge variant="outline" className="text-xs border-white/10 text-white/60">{getStatusLabel(request.status)}</Badge>
                       </div>
-
                       <div className="col-span-1">
-                        <p className="text-xs text-muted-foreground mb-1">AI Decision</p>
-                        {decision ? (
-                          <ScopeDecisionBadge decision={decision} size="sm" />
-                        ) : (
-                          <Badge variant="secondary" className="text-xs">
-                            Pending
-                          </Badge>
-                        )}
+                        <p className="text-xs text-white/30 mb-1">AI Decision</p>
+                        {decision ? <ScopeDecisionBadge decision={decision} size="sm" /> : <Badge className="text-xs bg-white/[0.04] text-white/40 border border-white/[0.06]">Pending</Badge>}
                       </div>
                     </div>
                   </Card>

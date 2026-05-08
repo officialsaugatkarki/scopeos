@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
+import Image from 'next/image'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,9 +15,7 @@ export default function Header() {
         <div className="flex items-center justify-between px-6 py-3 rounded-full glass-card-strong border border-white/[0.06]">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/20">
-              SG
-            </div>
+            <Image src="/logo.png" alt="ScopeGuard" width={32} height={32} className="rounded-lg" />
             <span className="font-semibold text-white/90 text-sm">ScopeGuard</span>
           </div>
 

@@ -9,43 +9,32 @@ interface ScopeDecisionBadgeProps {
 }
 
 export default function ScopeDecisionBadge({ decision, size = 'md' }: ScopeDecisionBadgeProps) {
-  const getVariant = () => {
-    switch (decision) {
-      case 'in-scope':
-        return 'default';
-      case 'out-of-scope':
-        return 'destructive';
-      case 'needs-info':
-        return 'secondary';
-    }
+  const iconSize = size === 'sm' ? 12 : size === 'lg' ? 20 : 16;
+
+  const config = {
+    'in-scope': {
+      label: 'In Scope',
+      icon: <CheckCircle2 style={{ width: iconSize, height: iconSize }} />,
+      className: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+    },
+    'out-of-scope': {
+      label: 'Out of Scope',
+      icon: <AlertCircle style={{ width: iconSize, height: iconSize }} />,
+      className: 'bg-red-500/10 text-red-400 border border-red-500/20',
+    },
+    'needs-info': {
+      label: 'Needs Info',
+      icon: <HelpCircle style={{ width: iconSize, height: iconSize }} />,
+      className: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+    },
   };
 
-  const getLabel = () => {
-    switch (decision) {
-      case 'in-scope':
-        return 'In Scope';
-      case 'out-of-scope':
-        return 'Out of Scope';
-      case 'needs-info':
-        return 'Needs Info';
-    }
-  };
-
-  const getIcon = () => {
-    switch (decision) {
-      case 'in-scope':
-        return <CheckCircle2 className={`w-${size === 'sm' ? '3' : size === 'lg' ? '5' : '4'} h-${size === 'sm' ? '3' : size === 'lg' ? '5' : '4'}`} />;
-      case 'out-of-scope':
-        return <AlertCircle className={`w-${size === 'sm' ? '3' : size === 'lg' ? '5' : '4'} h-${size === 'sm' ? '3' : size === 'lg' ? '5' : '4'}`} />;
-      case 'needs-info':
-        return <HelpCircle className={`w-${size === 'sm' ? '3' : size === 'lg' ? '5' : '4'} h-${size === 'sm' ? '3' : size === 'lg' ? '5' : '4'}`} />;
-    }
-  };
+  const { label, icon, className } = config[decision];
 
   return (
-    <Badge variant={getVariant()} className="flex items-center gap-1.5 px-3 py-1">
-      {getIcon()}
-      <span>{getLabel()}</span>
+    <Badge className={`flex items-center gap-1.5 px-3 py-1 ${className}`}>
+      {icon}
+      <span>{label}</span>
     </Badge>
   );
 }
