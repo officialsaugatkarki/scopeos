@@ -13,6 +13,7 @@ next.user-config.*
 # Common ignores
 node_modules
 .next/
-.DS_Storesupabase-schema.sql
+.DS_Store
+supabase-schema.sql
 supabase-seed.sql
 tsconfig.tsbuildinfo
