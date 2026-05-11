@@ -59,6 +59,9 @@ export interface Project {
   spent: number;
   scope_baseline: string;
   portal_url: string;
+  portal_token: string;
+  portal_enabled: boolean;
+  ai_context: Record<string, unknown>;
   scope_analytics: {
     totalRequests: number;
     inScope: number;
@@ -147,6 +150,35 @@ export interface ChangeRequest {
   description: string;
   status: 'pending' | 'approved' | 'rejected' | 'in-review';
   estimated_hours: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PortalMessage {
+  id: string;
+  project_id: string;
+  role: 'client' | 'assistant' | 'system';
+  content: string;
+  metadata: {
+    decision?: 'in-scope' | 'out-of-scope' | 'needs-info';
+    estimatedHours?: number;
+    cost?: string;
+    reasoning?: string;
+    title?: string;
+    scopeRequestId?: string;
+    changeRequestId?: string;
+  };
+  created_at: string;
+}
+
+export interface AgencyPricing {
+  id: string;
+  user_id: string;
+  hourly_rate: number;
+  currency: string;
+  min_hours: number;
+  overage_multiplier: number;
+  notes: string;
   created_at: string;
   updated_at: string;
 }

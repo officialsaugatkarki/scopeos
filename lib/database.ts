@@ -9,6 +9,8 @@ import type {
   ChangeRequest,
   Integration,
   UserSettings,
+  PortalMessage,
+  AgencyPricing,
 } from './supabase';
 
 // ============================================================
@@ -82,16 +84,54 @@ export async function getProject(id: string): Promise<Project | null> {
 }
 
 export async function createProject(
-  project: Omit<Project, 'id' | 'created_at' | 'updated_at' | 'request_count' | 'task_count' | 'scope_analytics' | 'portal_url'>
+  project: {
+    user_id: string;
+    name: string;
+    client_name: string;
+    client_email: string;
+    portal_enabled?: boolean;
+    description?: string;
+  }
 ): Promise<Project | null> {
+  const portalToken = crypto.randomUUID();
+
   const { data, error } = await supabase
     .from('projects')
-    .insert(project)
+    .insert({
+      user_id: project.user_id,
+      name: project.name,
+      description: project.description || '',
+      client_name: project.client_name,
+      client_email: project.client_email,
+      status: 'active',
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: null,
+      budget: 0,
+      spent: 0,
+      scope_baseline: '',
+      portal_token: portalToken,
+      portal_enabled: project.portal_enabled ?? true,
+    })
     .select()
     .single();
 
   if (error) {
     console.error('Error creating project:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function getProjectByToken(token: string): Promise<Project | null> {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('portal_token', token)
+    .eq('portal_enabled', true)
+    .single();
+
+  if (error) {
+    console.error('Error fetching project by token:', error);
     return null;
   }
   return data;
@@ -393,6 +433,93 @@ export async function updateUserSettings(
 
   if (error) {
     console.error('Error updating user settings:', error);
+    return null;
+  }
+  return data;
+}
+
+// ============================================================
+// PORTAL MESSAGES
+// ============================================================
+
+export async function getPortalMessages(
+  projectId: string,
+  limit: number = 50
+): Promise<PortalMessage[]> {
+  const { data, error } = await supabase
+    .from('portal_messages')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching portal messages:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function createPortalMessage(
+  message: Pick<PortalMessage, 'project_id' | 'role' | 'content'> & {
+    metadata?: PortalMessage['metadata'];
+  }
+): Promise<PortalMessage | null> {
+  const { data, error } = await supabase
+    .from('portal_messages')
+    .insert({
+      project_id: message.project_id,
+      role: message.role,
+      content: message.content,
+      metadata: message.metadata || {},
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating portal message:', error);
+    return null;
+  }
+  return data;
+}
+
+// ============================================================
+// AGENCY PRICING
+// ============================================================
+
+export async function getAgencyPricing(userId: string): Promise<AgencyPricing | null> {
+  const { data, error } = await supabase
+    .from('agency_pricing')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    // No pricing set yet is normal
+    return null;
+  }
+  return data;
+}
+
+export async function upsertAgencyPricing(
+  userId: string,
+  pricing: Partial<Omit<AgencyPricing, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+): Promise<AgencyPricing | null> {
+  const { data, error } = await supabase
+    .from('agency_pricing')
+    .upsert(
+      {
+        user_id: userId,
+        ...pricing,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' }
+    )
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error upserting agency pricing:', error);
     return null;
   }
   return data;

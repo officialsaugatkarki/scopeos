@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Copy, Trash2, Plus, Download } from 'lucide-react';
+import { Upload, Copy, Trash2, Plus, Download, Check } from 'lucide-react';
+import { getCurrentUserId } from '@/lib/auth';
+import { getAgencyPricing, upsertAgencyPricing } from '@/lib/database';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -21,6 +23,47 @@ export default function SettingsPage() {
     weeklySummary: false,
     mentions: false,
   });
+  const [pricingForm, setPricingForm] = useState({
+    hourly_rate: '150',
+    currency: 'USD',
+    min_hours: '1',
+    overage_multiplier: '1.5',
+    notes: '',
+  });
+  const [pricingSaved, setPricingSaved] = useState(false);
+
+  useEffect(() => {
+    const loadPricing = async () => {
+      const userId = await getCurrentUserId();
+      if (userId) {
+        const pricing = await getAgencyPricing(userId);
+        if (pricing) {
+          setPricingForm({
+            hourly_rate: String(pricing.hourly_rate),
+            currency: pricing.currency,
+            min_hours: String(pricing.min_hours),
+            overage_multiplier: String(pricing.overage_multiplier),
+            notes: pricing.notes || '',
+          });
+        }
+      }
+    };
+    loadPricing();
+  }, []);
+
+  const savePricing = async () => {
+    const userId = await getCurrentUserId();
+    if (!userId) return;
+    await upsertAgencyPricing(userId, {
+      hourly_rate: parseFloat(pricingForm.hourly_rate) || 150,
+      currency: pricingForm.currency,
+      min_hours: parseFloat(pricingForm.min_hours) || 1,
+      overage_multiplier: parseFloat(pricingForm.overage_multiplier) || 1.5,
+      notes: pricingForm.notes,
+    });
+    setPricingSaved(true);
+    setTimeout(() => setPricingSaved(false), 2000);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -158,19 +201,73 @@ export default function SettingsPage() {
                     <label className="text-sm font-medium text-foreground mb-2 block">Website</label>
                     <Input placeholder="https://youragency.com" />
                   </div>
+                </div>
+              </div>
+
+              {/* Pricing Rules — wired to Supabase */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Pricing Rules</h3>
+                <p className="text-xs text-muted-foreground mb-4">These values are used by AI to calculate costs for out-of-scope change requests.</p>
+                <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Default Hourly Rate</label>
-                      <Input placeholder="$150" />
+                      <label className="text-sm font-medium text-foreground mb-2 block">Hourly Rate</label>
+                      <Input
+                        type="number"
+                        placeholder="150"
+                        value={pricingForm.hourly_rate}
+                        onChange={(e) => setPricingForm({ ...pricingForm, hourly_rate: e.target.value })}
+                      />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-foreground mb-2 block">Currency</label>
-                      <select className="w-full px-3 py-2 border border-input rounded-md text-sm">
+                      <select
+                        className="w-full px-3 py-2 border border-input rounded-md text-sm"
+                        value={pricingForm.currency}
+                        onChange={(e) => setPricingForm({ ...pricingForm, currency: e.target.value })}
+                      >
                         <option>USD</option>
                         <option>EUR</option>
                         <option>GBP</option>
+                        <option>AUD</option>
+                        <option>CAD</option>
                       </select>
                     </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-2 block">Minimum Billable Hours</label>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        placeholder="1"
+                        value={pricingForm.min_hours}
+                        onChange={(e) => setPricingForm({ ...pricingForm, min_hours: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Minimum hours charged per change request</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-2 block">Rush/Overage Multiplier</label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="1.5"
+                        value={pricingForm.overage_multiplier}
+                        onChange={(e) => setPricingForm({ ...pricingForm, overage_multiplier: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Applied for rush or overage work (e.g., 1.5x)</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Pricing Notes (for AI context)</label>
+                    <textarea
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm"
+                      rows={3}
+                      placeholder="e.g., First 10 hours included in monthly retainer. Bug fixes are always in-scope. Design revisions beyond 3 rounds are billable..."
+                      value={pricingForm.notes}
+                      onChange={(e) => setPricingForm({ ...pricingForm, notes: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">AI will reference these rules when making scope decisions</p>
                   </div>
                 </div>
               </div>
@@ -227,7 +324,9 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button className="bg-primary hover:bg-primary/90">Save Changes</Button>
+                <Button onClick={savePricing} className="bg-primary hover:bg-primary/90 flex items-center gap-2">
+                  {pricingSaved ? <><Check size={16} /> Saved!</> : 'Save Changes'}
+                </Button>
               </div>
             </div>
           </Card>

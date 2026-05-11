@@ -9,8 +9,8 @@ import { getProjects } from '@/lib/database';
 import { getCurrentUserId } from '@/lib/auth';
 import type { Project } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { LayoutGrid, List, Search, Plus } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LayoutGrid, List, Search, Plus, Globe } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -48,51 +48,46 @@ export default function ProjectsPage() {
     }
   };
 
-  const getBudgetUsage = (project: Project) => {
-    if (!project.budget || project.budget === 0) return 0;
-    return Math.round((project.spent / project.budget) * 100);
-  };
-
   const ListViewCard = ({ project }: { project: Project }) => (
     <Card className="glass-card rounded-xl p-6 hover:border-white/10 transition-all cursor-pointer glow-border-hover" onClick={() => router.push(`/dashboard/projects/${project.id}`)}>
-      <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="flex items-start justify-between gap-4 mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-white truncate">{project.name}</h3>
           <p className="text-sm text-white/40 mt-1">Client: {project.client_name}</p>
         </div>
-        <Badge className={getStatusColor(project.status)}>{project.status}</Badge>
-      </div>
-      <p className="text-sm text-white/40 mb-4">{project.description}</p>
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div><p className="text-xs text-white/30 mb-1">Requests</p><p className="text-lg font-semibold text-white">{project.request_count}</p></div>
-        <div><p className="text-xs text-white/30 mb-1">Tasks</p><p className="text-lg font-semibold text-white">{project.task_count}</p></div>
-      </div>
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-white/30">Budget Usage</p>
-          <p className="text-xs font-medium text-white/60">${project.spent.toLocaleString()} / ${project.budget.toLocaleString()}</p>
+        <div className="flex items-center gap-2">
+          {project.portal_enabled && (
+            <Badge className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs">
+              <Globe className="w-3 h-3 mr-1" /> Portal
+            </Badge>
+          )}
+          <Badge className={getStatusColor(project.status)}>{project.status}</Badge>
         </div>
-        <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
-          <div className="h-full bg-blue-500 transition-all rounded-full" style={{ width: `${getBudgetUsage(project)}%` }} />
-        </div>
+      </div>
+      {project.description && <p className="text-sm text-white/40 mb-4">{project.description}</p>}
+      <div className="flex items-center gap-6">
+        <div className="text-xs text-white/30"><span className="font-semibold text-white/60">{project.request_count}</span> requests</div>
+        <div className="text-xs text-white/30"><span className="font-semibold text-white/60">{project.task_count}</span> tasks</div>
+        <div className="text-xs text-white/30">{project.client_email}</div>
       </div>
     </Card>
   );
 
   const GridViewCard = ({ project }: { project: Project }) => (
     <Card className="glass-card rounded-xl p-6 hover:border-white/10 transition-all cursor-pointer flex flex-col h-full glow-border-hover" onClick={() => router.push(`/dashboard/projects/${project.id}`)}>
-      <div className="flex items-start justify-between gap-2 mb-4">
+      <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex-1 min-w-0"><h3 className="text-base font-semibold text-white truncate">{project.name}</h3></div>
         <Badge className={`${getStatusColor(project.status)} text-xs whitespace-nowrap`}>{project.status}</Badge>
       </div>
-      <p className="text-xs text-white/40 mb-3">{project.client_name}</p>
-      <div className="space-y-3 mb-4 flex-1">
+      <p className="text-xs text-white/40 mb-1">{project.client_name}</p>
+      {project.portal_enabled && (
+        <Badge className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs w-fit mb-3">
+          <Globe className="w-3 h-3 mr-1" /> Portal Active
+        </Badge>
+      )}
+      <div className="space-y-2 flex-1">
         <div className="flex justify-between items-center text-xs"><span className="text-white/30">Requests</span><span className="font-semibold text-white/70">{project.request_count}</span></div>
         <div className="flex justify-between items-center text-xs"><span className="text-white/30">Tasks</span><span className="font-semibold text-white/70">{project.task_count}</span></div>
-        <div>
-          <div className="flex justify-between items-center text-xs mb-1"><span className="text-white/30">Budget</span><span className="font-semibold text-white/70">{getBudgetUsage(project)}%</span></div>
-          <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${getBudgetUsage(project)}%` }} /></div>
-        </div>
       </div>
     </Card>
   );
@@ -111,7 +106,7 @@ export default function ProjectsPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-3xl font-bold text-white mb-2">Projects</h1><p className="text-white/40">Manage all your agency projects and track scope creep</p></div>
+        <div><h1 className="text-3xl font-bold text-white mb-2">Projects</h1><p className="text-white/40">Manage all your agency projects</p></div>
         <Button onClick={() => router.push('/dashboard/projects/new')} className="btn-gradient text-white border-0 rounded-xl"><Plus className="w-4 h-4 mr-2" />New Project</Button>
       </div>
 

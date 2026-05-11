@@ -2,7 +2,8 @@
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FolderOpen, ArrowRight, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { FolderOpen, ArrowRight, Plus, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getProjects } from '@/lib/database';
@@ -70,17 +71,24 @@ export function ProjectsGrid() {
                     <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                       <FolderOpen className="text-blue-400" size={20} />
                     </div>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                      project.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : project.status === 'completed' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                    }`}>
-                      {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {project.portal_enabled && (
+                        <Badge className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-1.5 py-0.5">
+                          <Globe className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                        project.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : project.status === 'completed' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      }`}>
+                        {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                      </span>
+                    </div>
                   </div>
 
-                  <h3 className="font-semibold text-white mb-2">{project.name}</h3>
-                  <p className="text-sm text-white/40 mb-4 flex-1">{project.description}</p>
+                  <h3 className="font-semibold text-white mb-1">{project.name}</h3>
+                  <p className="text-xs text-white/40 mb-4 flex-1">{project.client_name}</p>
 
                   <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
                     <div className="text-xs text-white/30">
