@@ -15,3 +15,4 @@ node_modules
 .next/
 .DS_Storesupabase-schema.sql
 supabase-seed.sql
+tsconfig.tsbuildinfo
