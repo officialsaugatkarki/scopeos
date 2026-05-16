@@ -1,465 +1,368 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { getProjectByToken, getPortalMessages } from '@/lib/database';
-import type { Project, PortalMessage } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { usePortal } from '@/components/portal-context';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useRef } from 'react';
 import {
-  Send,
-  Zap,
+  Activity,
+  MessageSquare,
+  FileText,
+  DollarSign,
   CheckCircle2,
   XCircle,
   HelpCircle,
-  Bot,
-  User,
-  Loader2,
-  DollarSign,
+  Clock,
   ArrowRight,
-  MessageSquare,
+  Zap,
+  TrendingUp,
+  Calendar,
+  Target,
 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
-export default function TokenPortalPage() {
-  const params = useParams();
+export default function PortalDashboardPage() {
   const router = useRouter();
-  const token = params?.token as string;
-  const [project, setProject] = useState<Project | null>(null);
-  const [messages, setMessages] = useState<PortalMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { project, token, requests, changeRequests, messages } = usePortal();
 
-  useEffect(() => {
-    setMounted(true);
-    const loadData = async () => {
-      const proj = await getProjectByToken(token);
-      if (proj) {
-        setProject(proj);
-        const msgs = await getPortalMessages(proj.id);
-        setMessages(msgs);
-      }
-      setIsLoading(false);
-    };
-    loadData();
-  }, [token]);
+  if (!project) return null;
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  const basePath = `/portal/p/${token}`;
 
-  const handleSend = async () => {
-    if (!input.trim() || isSending || !project) return;
+  // Compute stats
+  const inScopeCount = requests.filter(r => r.ai_analysis?.decision === 'in-scope').length;
+  const outOfScopeCount = requests.filter(r => r.ai_analysis?.decision === 'out-of-scope').length;
+  const pendingCount = requests.filter(r => !r.ai_analysis || r.status === 'submitted' || r.status === 'reviewing').length;
+  const pendingApprovals = changeRequests.filter(cr => cr.status === 'pending').length;
+  const totalRequests = requests.length;
+  const completedRequests = requests.filter(r => r.status === 'completed' || r.status === 'decision').length;
+  const progressPercent = totalRequests > 0 ? Math.round((completedRequests / totalRequests) * 100) : 0;
 
-    const userMessage = input.trim();
-    setInput('');
-    setIsSending(true);
+  // Budget
+  const budgetUsed = project.budget > 0 ? Math.round((project.spent / project.budget) * 100) : 0;
 
-    // Optimistically add client message
-    const tempClientMsg: PortalMessage = {
-      id: `temp-${Date.now()}`,
-      project_id: project.id,
-      role: 'client',
-      content: userMessage,
-      metadata: {},
-      created_at: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, tempClientMsg]);
+  // Recent activity — merge messages and requests, sort by date, take last 8
+  const recentActivity = [
+    ...messages.slice(-10).map(m => ({
+      id: m.id,
+      type: m.role === 'client' ? 'message_sent' : 'ai_response',
+      title: m.role === 'client' ? 'You sent a message' : 'AI responded',
+      description: m.content.substring(0, 80) + (m.content.length > 80 ? '...' : ''),
+      date: m.created_at,
+      icon: m.role === 'client' ? MessageSquare : Zap,
+      color: m.role === 'client' ? 'blue' : 'cyan',
+    })),
+    ...requests.slice(0, 5).map(r => ({
+      id: r.id,
+      type: 'scope_decision',
+      title: r.title,
+      description: r.ai_analysis?.decision === 'in-scope' ? 'Approved — In Scope' :
+                    r.ai_analysis?.decision === 'out-of-scope' ? 'Out of Scope — Change Request Created' :
+                    r.ai_analysis?.decision === 'needs-info' ? 'Needs More Information' : 'Pending Review',
+      date: r.submitted_at || r.created_at,
+      icon: r.ai_analysis?.decision === 'in-scope' ? CheckCircle2 :
+            r.ai_analysis?.decision === 'out-of-scope' ? XCircle :
+            r.ai_analysis?.decision === 'needs-info' ? HelpCircle : Clock,
+      color: r.ai_analysis?.decision === 'in-scope' ? 'emerald' :
+             r.ai_analysis?.decision === 'out-of-scope' ? 'red' :
+             r.ai_analysis?.decision === 'needs-info' ? 'amber' : 'blue',
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
 
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: project.id,
-          portalToken: token,
-          message: userMessage,
-        }),
-      });
-
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Chat API error:', res.status, errBody);
-        throw new Error(errBody.error || `Request failed (${res.status})`);
-      }
-
-      const data = await res.json();
-
-      const assistantMsg: PortalMessage = {
-        id: `resp-${Date.now()}`,
-        project_id: project.id,
-        role: 'assistant',
-        content: data.message,
-        metadata: data.metadata || {},
-        created_at: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch (error) {
-      console.error('Chat error:', error);
-      const errorMsg: PortalMessage = {
-        id: `err-${Date.now()}`,
-        project_id: project.id,
-        role: 'assistant',
-        content: `Sorry, something went wrong: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
-        metadata: {},
-        created_at: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setIsSending(false);
-      inputRef.current?.focus();
-    }
+  const colorMap: Record<string, string> = {
+    blue: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+    cyan: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+    emerald: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    red: 'text-red-400 bg-red-500/10 border-red-500/20',
+    amber: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
   };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  if (!mounted) return null;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 text-blue-400 animate-spin mx-auto" />
-          <p className="text-white/40">Loading your portal...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!project) {
-    return (
-      <div className="max-w-2xl mx-auto text-center py-20">
-        <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
-          <XCircle className="w-10 h-10 text-red-400" />
-        </div>
-        <h1 className="text-3xl font-bold text-white mb-3">Portal Not Found</h1>
-        <p className="text-white/40 mb-6">
-          This portal link is invalid or has been disabled.
-        </p>
-        <Button
-          onClick={() => router.push('/')}
-          variant="outline"
-          className="border-white/[0.06] bg-white/[0.02] text-white/60 hover:bg-white/[0.06] hover:text-white rounded-xl"
-        >
-          Go to Homepage
-        </Button>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 8rem)' }}>
-      {/* ── HEADER ── */}
-      <div className="flex items-center gap-3 pb-4 border-b border-white/[0.06] flex-shrink-0">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-400/10 border border-blue-500/20 flex items-center justify-center">
-          <Zap className="w-5 h-5 text-blue-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-bold text-white truncate">{project.name}</h1>
-          <p className="text-xs text-white/40">AI-Powered Project Portal</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-            Active
-          </span>
-        </div>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Welcome Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl md:text-3xl font-bold text-white">
+          Welcome back, <span className="gradient-text-blue">{project.client_name}</span>
+        </h1>
+        <p className="text-white/40 text-sm md:text-base">{project.name} — {project.description || 'Your project workspace'}</p>
       </div>
 
-      {/* ── MESSAGES AREA ── */}
-      <div className="flex-1 overflow-y-auto py-6 space-y-4 min-h-0">
-        {/* Welcome message if no messages */}
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-400/10 border border-blue-500/20 flex items-center justify-center mb-6">
-              <MessageSquare className="w-8 h-8 text-blue-400" />
+      {/* Status Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        {/* Project Status */}
+        <Card className="glass-card rounded-xl p-4 glow-border-hover transition-all">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <Activity className="w-5 h-5 text-emerald-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Hi {project.client_name}! 👋
-            </h2>
-            <p className="text-white/40 max-w-md mb-8">
-              Tell me what you need for <span className="text-white font-medium">{project.name}</span>.
-              I&apos;ll analyze scope and handle everything automatically.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
-              {[
-                { label: 'Report a bug', icon: '🐛' },
-                { label: 'Request a feature', icon: '✨' },
-                { label: 'Ask a question', icon: '❓' },
-              ].map((suggestion) => (
-                <button
-                  key={suggestion.label}
-                  onClick={() => {
-                    setInput(suggestion.label);
-                    inputRef.current?.focus();
-                  }}
-                  className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-white/10 hover:bg-white/[0.05] transition-all text-sm text-white/60 hover:text-white/80 text-left"
-                >
-                  <span className="text-lg mr-2">{suggestion.icon}</span>
-                  {suggestion.label}
-                </button>
-              ))}
+            <div className="min-w-0">
+              <p className="text-[11px] text-white/30 uppercase tracking-wider">Status</p>
+              <p className="text-lg font-bold text-emerald-400 capitalize">{project.status}</p>
             </div>
           </div>
-        )}
+        </Card>
 
-        {/* Chat messages */}
-        {messages.map((msg) => (
-          <div key={msg.id}>
-            {msg.role === 'client' ? (
-              /* ── CLIENT MESSAGE ── */
-              <div className="flex justify-end">
-                <div className="flex items-end gap-2 max-w-[80%]">
-                  <div className="bg-blue-500/20 border border-blue-500/20 rounded-2xl rounded-br-md px-4 py-3">
-                    <p className="text-sm text-white whitespace-pre-wrap">{msg.content}</p>
+        {/* Active Requests */}
+        <Card className="glass-card rounded-xl p-4 glow-border-hover transition-all cursor-pointer" onClick={() => router.push(`${basePath}/requests`)}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <FileText className="w-5 h-5 text-blue-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-white/30 uppercase tracking-wider">Requests</p>
+              <p className="text-lg font-bold text-white">{totalRequests}</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Pending Approvals */}
+        <Card className="glass-card rounded-xl p-4 glow-border-hover transition-all cursor-pointer" onClick={() => router.push(`${basePath}/changes`)}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+              <DollarSign className="w-5 h-5 text-amber-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-white/30 uppercase tracking-wider">Pending</p>
+              <p className="text-lg font-bold text-amber-400">{pendingApprovals}</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Scope Distribution */}
+        <Card className="glass-card rounded-xl p-4 glow-border-hover transition-all">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+              <Target className="w-5 h-5 text-cyan-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-white/30 uppercase tracking-wider">In Scope</p>
+              <p className="text-lg font-bold text-white">{inScopeCount}<span className="text-white/30 text-sm font-normal">/{totalRequests}</span></p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* Activity Feed — 2 cols */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Progress Card */}
+          <Card className="glass-card rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-blue-400" />
+                <h3 className="font-semibold text-white text-sm">Project Progress</h3>
+              </div>
+              <span className="text-sm font-bold text-blue-400">{progressPercent}%</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-white/[0.04] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-3 text-xs text-white/30">
+              <span>{completedRequests} processed</span>
+              <span>{pendingCount} pending</span>
+            </div>
+          </Card>
+
+          {/* Scope Overview Bars */}
+          <Card className="glass-card rounded-xl p-5">
+            <h3 className="font-semibold text-white text-sm mb-4 flex items-center gap-2">
+              <Target className="w-4 h-4 text-blue-400" />
+              Scope Overview
+            </h3>
+            <div className="space-y-3">
+              {/* In Scope */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-xs text-white/60">In Scope</span>
                   </div>
-                  <div className="w-7 h-7 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
-                    <User className="w-3.5 h-3.5 text-blue-400" />
-                  </div>
+                  <span className="text-xs font-medium text-emerald-400">{inScopeCount}</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                  <div className="h-full rounded-full bg-emerald-500/60 transition-all duration-500" style={{ width: totalRequests > 0 ? `${(inScopeCount / totalRequests) * 100}%` : '0%' }} />
                 </div>
               </div>
-            ) : (
-              /* ── AI MESSAGE ── */
-              <div className="flex justify-start">
-                <div className="flex items-end gap-2 max-w-[85%]">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-400/10 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-3.5 h-3.5 text-blue-400" />
+              {/* Out of Scope */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="w-3.5 h-3.5 text-red-400" />
+                    <span className="text-xs text-white/60">Out of Scope</span>
                   </div>
-                  <div className="space-y-2 flex-1 min-w-0">
-                    <div className="glass-card rounded-2xl rounded-bl-md px-4 py-3">
-                      <div className="text-sm text-white/80 whitespace-pre-wrap prose-sm">
-                        <MessageContent content={msg.content} />
+                  <span className="text-xs font-medium text-red-400">{outOfScopeCount}</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                  <div className="h-full rounded-full bg-red-500/60 transition-all duration-500" style={{ width: totalRequests > 0 ? `${(outOfScopeCount / totalRequests) * 100}%` : '0%' }} />
+                </div>
+              </div>
+              {/* Pending */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-xs text-white/60">Pending / Needs Info</span>
+                  </div>
+                  <span className="text-xs font-medium text-amber-400">{pendingCount}</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                  <div className="h-full rounded-full bg-amber-500/60 transition-all duration-500" style={{ width: totalRequests > 0 ? `${(pendingCount / totalRequests) * 100}%` : '0%' }} />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Recent Activity */}
+          <Card className="glass-card rounded-xl p-5">
+            <h3 className="font-semibold text-white text-sm mb-4 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-blue-400" />
+              Recent Activity
+            </h3>
+            {recentActivity.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-white/30 text-sm">No activity yet</p>
+                <p className="text-white/20 text-xs mt-1">Start a conversation with AI to see updates here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentActivity.map((item) => {
+                  const Icon = item.icon;
+                  const colors = colorMap[item.color] || colorMap.blue;
+                  return (
+                    <div key={item.id} className="flex items-start gap-3 group">
+                      <div className={`w-8 h-8 rounded-lg border flex items-center justify-center flex-shrink-0 mt-0.5 ${colors}`}>
+                        <Icon className="w-4 h-4" />
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white/80 font-medium truncate">{item.title}</p>
+                        <p className="text-xs text-white/30 truncate">{item.description}</p>
+                      </div>
+                      <span className="text-[10px] text-white/20 flex-shrink-0 mt-1">
+                        {formatDistanceToNow(new Date(item.date), { addSuffix: true })}
+                      </span>
                     </div>
-
-                    {/* ── DECISION CARD ── */}
-                    {msg.metadata?.decision && (
-                      <DecisionCard metadata={msg.metadata} />
-                    )}
-                  </div>
-                </div>
+                  );
+                })}
               </div>
             )}
-          </div>
-        ))}
+          </Card>
+        </div>
 
-        {/* Typing indicator */}
-        {isSending && (
-          <div className="flex justify-start">
-            <div className="flex items-end gap-2">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-400/10 border border-blue-500/30 flex items-center justify-center">
-                <Bot className="w-3.5 h-3.5 text-blue-400" />
-              </div>
-              <div className="glass-card rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex items-center gap-1.5">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="w-2 h-2 rounded-full bg-blue-400/60"
-                      style={{
-                        animation: `glow-pulse 1.4s ease-in-out ${i * 0.2}s infinite`,
-                      }}
-                    />
-                  ))}
-                  <span className="text-xs text-white/30 ml-2">Analyzing scope...</span>
+        {/* Right Column */}
+        <div className="space-y-4">
+          {/* Quick Actions */}
+          <Card className="glass-card rounded-xl p-5">
+            <h3 className="font-semibold text-white text-sm mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              <Button
+                onClick={() => router.push(`${basePath}/chat`)}
+                className="w-full btn-gradient text-white border-0 rounded-xl h-11 text-sm justify-between group"
+              >
+                <span className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  Start AI Chat
+                </span>
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Button>
+              <Button
+                onClick={() => router.push(`${basePath}/requests`)}
+                variant="outline"
+                className="w-full border-white/[0.06] bg-white/[0.02] text-white/60 hover:bg-white/[0.06] hover:text-white rounded-xl h-11 text-sm justify-between group"
+              >
+                <span className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  View Requests
+                </span>
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Button>
+              <Button
+                onClick={() => router.push(`${basePath}/changes`)}
+                variant="outline"
+                className="w-full border-white/[0.06] bg-white/[0.02] text-white/60 hover:bg-white/[0.06] hover:text-white rounded-xl h-11 text-sm justify-between group"
+              >
+                <span className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Change Requests
+                </span>
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Button>
+            </div>
+          </Card>
+
+          {/* Budget Overview */}
+          {project.budget > 0 && (
+            <Card className="glass-card rounded-xl p-5">
+              <h3 className="font-semibold text-white text-sm mb-4 flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-blue-400" />
+                Budget
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-2xl font-bold text-white">${project.spent.toLocaleString()}</span>
+                  <span className="text-sm text-white/30">/ ${project.budget.toLocaleString()}</span>
                 </div>
+                <div className="w-full h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${budgetUsed > 90 ? 'bg-red-500' : budgetUsed > 70 ? 'bg-amber-500' : 'bg-gradient-to-r from-blue-500 to-cyan-400'}`}
+                    style={{ width: `${Math.min(budgetUsed, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-white/30">{budgetUsed}% used</p>
+              </div>
+            </Card>
+          )}
+
+          {/* Timeline */}
+          <Card className="glass-card rounded-xl p-5">
+            <h3 className="font-semibold text-white text-sm mb-4 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-400" />
+              Timeline
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/40">Start Date</span>
+                <span className="text-xs text-white/70 font-medium">
+                  {project.start_date ? new Date(project.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/40">End Date</span>
+                <span className="text-xs text-white/70 font-medium">
+                  {project.end_date ? new Date(project.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/40">Duration</span>
+                <span className="text-xs text-white/70 font-medium">
+                  {project.start_date ? formatDistanceToNow(new Date(project.start_date)) : '—'}
+                </span>
               </div>
             </div>
-          </div>
-        )}
+          </Card>
 
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* ── INPUT BAR ── */}
-      <div className="flex-shrink-0 pt-4 border-t border-white/[0.06]">
-        <div className="flex items-end gap-2">
-          <div className="flex-1 relative">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                // Auto-resize
-                e.target.style.height = 'auto';
-                e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder="Describe what you need..."
-              rows={1}
-              className="w-full resize-none dark-input rounded-xl px-4 py-3 pr-12 text-sm leading-relaxed min-h-[48px] max-h-[150px]"
-              disabled={isSending}
-            />
-          </div>
-          <Button
-            onClick={handleSend}
-            disabled={!input.trim() || isSending}
-            className="btn-gradient text-white border-0 rounded-xl h-[48px] w-[48px] p-0 flex items-center justify-center disabled:opacity-40"
-          >
-            {isSending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </Button>
+          {/* AI Status */}
+          <Card className="glass-card rounded-xl p-5 border-blue-500/10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-400/10 border border-blue-500/20 flex items-center justify-center">
+                <Zap className="w-4 h-4 text-blue-400" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-white">ScopeOS AI</h4>
+                <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Online
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-white/30">
+              Your AI assistant is ready to analyze requests, provide scope decisions, and handle change orders automatically.
+            </p>
+          </Card>
         </div>
-        <p className="text-[10px] text-white/20 text-center mt-2">
-          Powered by ScopeOS AI • Messages are analyzed for scope decisions
-        </p>
       </div>
     </div>
   );
-}
-
-/* ─── MESSAGE CONTENT RENDERER ─── */
-function MessageContent({ content }: { content: string }) {
-  // Simple markdown-like rendering
-  const lines = content.split('\n');
-
-  return (
-    <>
-      {lines.map((line, i) => {
-        // Headers
-        if (line.startsWith('### ')) {
-          return (
-            <h4 key={i} className="text-sm font-semibold text-white mt-3 mb-1">
-              {line.replace('### ', '')}
-            </h4>
-          );
-        }
-        if (line.startsWith('## ')) {
-          return (
-            <h3 key={i} className="text-base font-semibold text-white mt-3 mb-1">
-              {line.replace('## ', '')}
-            </h3>
-          );
-        }
-
-        // Table rows
-        if (line.startsWith('|')) {
-          const cells = line
-            .split('|')
-            .filter(Boolean)
-            .map((c) => c.trim());
-          if (cells.every((c) => c.match(/^[-:]+$/))) return null; // separator row
-          return (
-            <div key={i} className="flex items-center gap-4 text-xs py-1">
-              {cells.map((cell, j) => (
-                <span key={j} className={j === 0 ? 'text-white/40 w-32' : 'text-white font-medium'}>
-                  <InlineFormat text={cell} />
-                </span>
-              ))}
-            </div>
-          );
-        }
-
-        // Empty lines
-        if (!line.trim()) {
-          return <div key={i} className="h-2" />;
-        }
-
-        // Regular text with inline formatting
-        return (
-          <p key={i} className="text-sm text-white/80 leading-relaxed">
-            <InlineFormat text={line} />
-          </p>
-        );
-      })}
-    </>
-  );
-}
-
-/* ─── INLINE FORMAT ─── */
-function InlineFormat({ text }: { text: string }) {
-  // Handle **bold**
-  const parts = text.split(/(\*\*.*?\*\*)/g);
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return (
-            <strong key={i} className="font-semibold text-white">
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
-}
-
-/* ─── DECISION CARD ─── */
-function DecisionCard({
-  metadata,
-}: {
-  metadata: PortalMessage['metadata'];
-}) {
-  if (!metadata.decision) return null;
-
-  if (metadata.decision === 'in-scope') {
-    return (
-      <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/15 p-3">
-        <div className="flex items-center gap-2 mb-1">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span className="text-xs font-semibold text-emerald-400">IN SCOPE — Task Added</span>
-        </div>
-        {metadata.title && (
-          <p className="text-xs text-white/50 ml-6">{metadata.title}</p>
-        )}
-      </div>
-    );
-  }
-
-  if (metadata.decision === 'out-of-scope') {
-    return (
-      <div className="rounded-xl bg-red-500/5 border border-red-500/15 p-3 space-y-2">
-        <div className="flex items-center gap-2">
-          <XCircle className="w-4 h-4 text-red-400" />
-          <span className="text-xs font-semibold text-red-400">OUT OF SCOPE — Change Request</span>
-        </div>
-        {metadata.title && (
-          <p className="text-xs text-white/50 ml-6">{metadata.title}</p>
-        )}
-        <div className="flex items-center gap-3 ml-6">
-          {metadata.cost && (
-            <div className="flex items-center gap-1">
-              <DollarSign className="w-3 h-3 text-amber-400" />
-              <span className="text-xs font-semibold text-amber-400">{metadata.cost}</span>
-            </div>
-          )}
-          {metadata.estimatedHours && (
-            <span className="text-xs text-white/30">{metadata.estimatedHours} hrs estimated</span>
-          )}
-        </div>
-        <button className="ml-6 flex items-center gap-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors mt-1">
-          <ArrowRight className="w-3 h-3" /> Approve Change Request
-        </button>
-      </div>
-    );
-  }
-
-  if (metadata.decision === 'needs-info') {
-    return (
-      <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-3">
-        <div className="flex items-center gap-2">
-          <HelpCircle className="w-4 h-4 text-amber-400" />
-          <span className="text-xs font-semibold text-amber-400">NEEDS CLARIFICATION</span>
-        </div>
-        <p className="text-xs text-white/40 ml-6 mt-1">
-          Please provide more details above to continue
-        </p>
-      </div>
-    );
-  }
-
-  return null;
 }

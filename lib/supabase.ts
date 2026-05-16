@@ -171,6 +171,27 @@ export interface PortalMessage {
   created_at: string;
 }
 
+export interface PortalFile {
+  id: string;
+  project_id: string;
+  file_name: string;
+  file_type: string | null;
+  file_size: number | null;
+  storage_path: string;
+  uploaded_by: string;
+  created_at: string;
+}
+
+export interface DirectMessage {
+  id: string;
+  project_id: string;
+  sender_role: 'client' | 'pm';
+  sender_name: string;
+  content: string;
+  read: boolean;
+  created_at: string;
+}
+
 export interface AgencyPricing {
   id: string;
   user_id: string;

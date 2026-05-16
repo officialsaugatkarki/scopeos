@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { getProject, getScopeRequests, updateProject } from '@/lib/database';
 import type { Project, ScopeRequest } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Copy, ExternalLink, Mail, Check, Globe } from 'lucide-react';
+import { ArrowLeft, Copy, ExternalLink, Mail, Check, Globe, MessageCircle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function ProjectDetailPage() {
@@ -110,7 +110,7 @@ export default function ProjectDetailPage() {
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-white mb-2">{project.name}</h1>
           <p className="text-white/40 mb-4">{project.description}</p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Badge className={getStatusColor(project.status)}>{project.status}</Badge>
             <span className="text-sm text-white/30">Client: {project.client_name}</span>
             {project.portal_enabled && (
@@ -120,6 +120,12 @@ export default function ProjectDetailPage() {
             )}
           </div>
         </div>
+        <Button
+          onClick={() => router.push(`/dashboard/projects/${projectId}/chat`)}
+          className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/20 rounded-xl h-10 px-4 text-sm gap-2 flex-shrink-0"
+        >
+          <MessageCircle className="w-4 h-4" /> Chat with Client
+        </Button>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">

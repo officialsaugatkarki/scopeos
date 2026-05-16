@@ -10,6 +10,8 @@ import type {
   Integration,
   UserSettings,
   PortalMessage,
+  PortalFile,
+  DirectMessage,
   AgencyPricing,
 } from './supabase';
 
@@ -524,3 +526,160 @@ export async function upsertAgencyPricing(
   }
   return data;
 }
+
+// ============================================================
+// PORTAL FILES
+// ============================================================
+
+export async function getPortalFiles(projectId: string): Promise<PortalFile[]> {
+  const { data, error } = await supabase
+    .from('portal_files')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching portal files:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function createPortalFile(
+  file: Pick<PortalFile, 'project_id' | 'file_name' | 'file_type' | 'file_size' | 'storage_path' | 'uploaded_by'>
+): Promise<PortalFile | null> {
+  const { data, error } = await supabase
+    .from('portal_files')
+    .insert(file)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating portal file record:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function deletePortalFile(id: string): Promise<boolean> {
+  // Get the file record first to delete from storage
+  const { data: file } = await supabase
+    .from('portal_files')
+    .select('storage_path')
+    .eq('id', id)
+    .single();
+
+  if (file?.storage_path) {
+    await supabase.storage
+      .from('portal-files')
+      .remove([file.storage_path]);
+  }
+
+  const { error } = await supabase
+    .from('portal_files')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting portal file:', error);
+    return false;
+  }
+  return true;
+}
+
+export async function uploadPortalFile(
+  projectId: string,
+  file: File
+): Promise<PortalFile | null> {
+  const storagePath = `${projectId}/${Date.now()}-${file.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('portal-files')
+    .upload(storagePath, file);
+
+  if (uploadError) {
+    console.error('Error uploading file to storage:', uploadError);
+    return null;
+  }
+
+  return createPortalFile({
+    project_id: projectId,
+    file_name: file.name,
+    file_type: file.type || null,
+    file_size: file.size,
+    storage_path: storagePath,
+    uploaded_by: 'client',
+  });
+}
+
+export function getPortalFileUrl(storagePath: string): string {
+  const { data } = supabase.storage
+    .from('portal-files')
+    .getPublicUrl(storagePath);
+  return data.publicUrl;
+}
+
+// ============================================================
+// DIRECT MESSAGES (PM ↔ Client)
+// ============================================================
+
+export async function getDirectMessages(projectId: string): Promise<DirectMessage[]> {
+  const { data, error } = await supabase
+    .from('direct_messages')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching direct messages:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function sendDirectMessage(
+  msg: Pick<DirectMessage, 'project_id' | 'sender_role' | 'sender_name' | 'content'>
+): Promise<DirectMessage | null> {
+  const { data, error } = await supabase
+    .from('direct_messages')
+    .insert(msg)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error sending direct message:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function markDirectMessagesRead(
+  projectId: string,
+  role: 'client' | 'pm'
+): Promise<void> {
+  // Mark messages as read that were sent by the OTHER role
+  const otherRole = role === 'client' ? 'pm' : 'client';
+  await supabase
+    .from('direct_messages')
+    .update({ read: true })
+    .eq('project_id', projectId)
+    .eq('sender_role', otherRole)
+    .eq('read', false);
+}
+
+export async function getUnreadMessageCount(
+  projectId: string,
+  forRole: 'client' | 'pm'
+): Promise<number> {
+  const otherRole = forRole === 'client' ? 'pm' : 'client';
+  const { count, error } = await supabase
+    .from('direct_messages')
+    .select('*', { count: 'exact', head: true })
+    .eq('project_id', projectId)
+    .eq('sender_role', otherRole)
+    .eq('read', false);
+
+  if (error) return 0;
+  return count || 0;
+}
+
