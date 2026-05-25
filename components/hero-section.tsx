@@ -71,6 +71,7 @@ export default function HeroSection() {
             <Button
               size="lg"
               className="btn-gradient text-white font-semibold px-8 rounded-full border-0 whitespace-nowrap"
+              onClick={() => window.location.href = '/signup'}
             >
               Start Free Trial
             </Button>

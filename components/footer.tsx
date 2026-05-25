@@ -19,25 +19,25 @@ export default function Footer() {
             <ul className="space-y-2.5">
               <li><a href="#features" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Features</a></li>
               <li><a href="#pricing" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Pricing</a></li>
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Changelog</a></li>
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Roadmap</a></li>
+              <li><a href="#how-it-works" className="text-sm text-white/30 hover:text-blue-400 transition-colors">How It Works</a></li>
+              <li><a href="#testimonials" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Testimonials</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-white/80 text-sm mb-4">Company</h4>
             <ul className="space-y-2.5">
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">About</a></li>
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Blog</a></li>
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Careers</a></li>
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Contact</a></li>
+              <li><a href="/login" className="text-sm text-white/30 hover:text-blue-400 transition-colors">About</a></li>
+              <li><a href="#testimonials" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Blog</a></li>
+              <li><a href="/signup" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Get Started</a></li>
+              <li><a href="mailto:hello@scopeguard.ai" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Contact</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-white/80 text-sm mb-4">Legal</h4>
             <ul className="space-y-2.5">
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Privacy</a></li>
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Terms</a></li>
-              <li><a href="#" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Security</a></li>
+              <li><a href="#privacy" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Privacy</a></li>
+              <li><a href="#terms" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Terms</a></li>
+              <li><a href="#security" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Security</a></li>
             </ul>
           </div>
         </div>

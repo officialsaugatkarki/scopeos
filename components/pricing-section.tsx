@@ -135,6 +135,13 @@ export default function PricingSection() {
                       : 'bg-white/[0.04] border border-white/10 text-white hover:bg-white/[0.08]'
                   }`}
                   size="lg"
+                  onClick={() => {
+                    if (plan.cta === 'Contact Sales') {
+                      window.location.href = 'mailto:sales@scopeguard.ai?subject=Agency Plan Inquiry';
+                    } else {
+                      window.location.href = '/signup';
+                    }
+                  }}
                 >
                   {plan.cta}
                 </Button>

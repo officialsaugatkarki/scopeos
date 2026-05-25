@@ -27,24 +27,16 @@ export default function Header() {
             <a href="#pricing" className="text-white/60 hover:text-white text-sm px-4 py-1.5 rounded-full hover:bg-white/[0.06] transition-all">
               Pricing
             </a>
-            <a href="#" className="text-white/60 hover:text-white text-sm px-4 py-1.5 rounded-full hover:bg-white/[0.06] transition-all">
+            <a href="#how-it-works" className="text-white/60 hover:text-white text-sm px-4 py-1.5 rounded-full hover:bg-white/[0.06] transition-all">
               Docs
             </a>
-            <a href="#" className="text-white/60 hover:text-white text-sm px-4 py-1.5 rounded-full hover:bg-white/[0.06] transition-all">
+            <a href="#testimonials" className="text-white/60 hover:text-white text-sm px-4 py-1.5 rounded-full hover:bg-white/[0.06] transition-all">
               Blog
             </a>
           </nav>
 
           {/* Right — Auth */}
           <div className="hidden md:flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white/60 hover:text-white hover:bg-white/[0.06] text-sm"
-              onClick={() => window.location.href = '/portal'}
-            >
-              Client Portal
-            </Button>
             <Button
               size="sm"
               className="btn-gradient text-white text-sm px-5 rounded-full border-0"
@@ -77,17 +69,14 @@ export default function Header() {
               <a href="#pricing" className="text-white/60 hover:text-white transition py-2.5 px-3 rounded-lg hover:bg-white/[0.04] text-sm">
                 Pricing
               </a>
-              <a href="#" className="text-white/60 hover:text-white transition py-2.5 px-3 rounded-lg hover:bg-white/[0.04] text-sm">
+              <a href="#how-it-works" className="text-white/60 hover:text-white transition py-2.5 px-3 rounded-lg hover:bg-white/[0.04] text-sm">
                 Docs
               </a>
-              <a href="#" className="text-white/60 hover:text-white transition py-2.5 px-3 rounded-lg hover:bg-white/[0.04] text-sm">
+              <a href="#testimonials" className="text-white/60 hover:text-white transition py-2.5 px-3 rounded-lg hover:bg-white/[0.04] text-sm">
                 Blog
               </a>
               <div className="flex flex-col gap-2 pt-3 border-t border-white/[0.06]">
-                <Button variant="ghost" size="sm" className="w-full text-white/60 hover:text-white hover:bg-white/[0.06]">
-                  Client Portal
-                </Button>
-                <Button size="sm" className="w-full btn-gradient text-white rounded-full border-0">
+                <Button size="sm" className="w-full btn-gradient text-white rounded-full border-0" onClick={() => { window.location.href = '/login'; setIsOpen(false); }}>
                   Login
                 </Button>
               </div>

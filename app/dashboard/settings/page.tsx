@@ -528,7 +528,7 @@ export default function SettingsPage() {
 
             <div className="mt-6 p-4 bg-muted rounded-lg">
               <p className="text-sm text-foreground mb-2 font-medium">Need help?</p>
-              <a href="#" className="text-sm text-primary hover:underline">View API Documentation</a>
+              <a href="/demo" className="text-sm text-primary hover:underline">View API Documentation</a>
             </div>
           </Card>
         </TabsContent>

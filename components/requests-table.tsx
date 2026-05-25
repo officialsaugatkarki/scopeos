@@ -47,7 +47,7 @@ export function RequestsTable() {
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-white">Recent Change Requests</h2>
-          <button className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
+          <button onClick={() => window.location.href = '/dashboard/requests'} className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
             View All <ArrowRight size={16} />
           </button>
         </div>

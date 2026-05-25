@@ -85,7 +85,7 @@ export default function DemoPage() {
                 <span className="text-foreground"><strong>Needs Clarification:</strong> Ambiguous requirements</span>
               </li>
             </ul>
-            <Button variant="ghost" className="justify-start p-0 text-primary hover:text-primary/80">
+            <Button variant="ghost" className="justify-start p-0 text-primary hover:text-primary/80" onClick={() => window.location.href = '/demo/ai-analysis'}>
               View in AI Analysis
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>

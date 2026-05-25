@@ -36,8 +36,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`dark bg-background scroll-smooth ${inter.variable}`}>
-      <body className="font-sans antialiased bg-[#050A18] text-white/90">
+    <html lang="en" className={`dark bg-background scroll-smooth ${inter.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased bg-[#050A18] text-white/90" suppressHydrationWarning>
         <ToastProvider />
         <CookieBanner />
         <HelpWidget />

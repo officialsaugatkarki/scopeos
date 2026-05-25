@@ -18,7 +18,7 @@ export default function CtaSection() {
         <p className="text-lg text-white/40 max-w-2xl mx-auto mb-10">
           Join 50+ dev agencies preventing scope creep and protecting their margins with ScopeGuard AI.
         </p>
-        <Button size="lg" className="btn-gradient text-white font-semibold mb-10 px-10 rounded-full border-0 h-12 text-base">
+        <Button size="lg" className="btn-gradient text-white font-semibold mb-10 px-10 rounded-full border-0 h-12 text-base" onClick={() => window.location.href = '/signup'}>
           Start Free Trial
         </Button>
         <div className="flex flex-col sm:flex-row gap-8 justify-center text-sm text-white/40">
