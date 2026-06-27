@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { getProject, getScopeRequests, createScopeRequest } from '@/lib/database';
-import type { Project, ScopeRequest } from '@/lib/supabase';
+import { getProject, getRequests, createRequest } from '@/lib/database';
+import type { Project, Request } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
@@ -15,7 +15,7 @@ export default function ProjectPortalPage() {
   const router = useRouter();
   const projectId = params?.id as string;
   const [project, setProject] = useState<Project | null>(null);
-  const [requests, setRequests] = useState<ScopeRequest[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'submit' | 'view'>('submit');
@@ -23,7 +23,7 @@ export default function ProjectPortalPage() {
   useEffect(() => {
     setMounted(true);
     const loadData = async () => {
-      const [proj, reqs] = await Promise.all([getProject(projectId), getScopeRequests(projectId)]);
+      const [proj, reqs] = await Promise.all([getProject(projectId), getRequests(projectId)]);
       setProject(proj); setRequests(reqs); setIsLoading(false);
     };
     loadData();
@@ -56,22 +56,30 @@ export default function ProjectPortalPage() {
   }
 
   const getDecisionStats = () => {
-    const inScope = requests.filter((r) => r.ai_analysis?.decision === 'in-scope').length;
-    const outOfScope = requests.filter((r) => r.ai_analysis?.decision === 'out-of-scope').length;
-    const needsInfo = requests.filter((r) => r.ai_analysis?.decision === 'needs-info').length;
+    const inScope = requests.filter((r) => r.ai_decision === 'in-scope').length;
+    const outOfScope = requests.filter((r) => r.ai_decision === 'out-of-scope').length;
+    const needsInfo = requests.filter((r) => r.ai_decision === 'needs-info').length;
     return { inScope, outOfScope, needsInfo };
   };
 
   const stats = getDecisionStats();
 
   const handleSubmit = async (data: { title: string; description: string; attachments: string[] }) => {
-    const newRequest = await createScopeRequest({
-      project_id: projectId, client_name: 'Portal User', client_email: '',
-      title: data.title, description: data.description, attachments: data.attachments,
+    const newRequest = await createRequest({
+      project_id: projectId,
+      client_id: 'portal_user',
+      message: `${data.title}\n\n${data.description}`,
+      ai_decision: 'pending',
+      confidence_score: 0,
+      reasoning: '',
+      estimated_impact: '',
+      status: 'submitted'
     });
+    
     if (newRequest) {
-      const updatedRequests = await getScopeRequests(projectId);
-      setRequests(updatedRequests); setActiveTab('view');
+      const updatedRequests = await getRequests(projectId);
+      setRequests(updatedRequests); 
+      setActiveTab('view');
     }
   };
 
@@ -150,42 +158,35 @@ export default function ProjectPortalPage() {
               <Button onClick={() => setActiveTab('submit')} className="btn-gradient text-white border-0 rounded-xl">Submit Your First Request</Button>
             </Card>
           ) : (
-            requests.map((request) => (
+            requests.map((request) => {
+              const title = request.message.split('\n')[0].substring(0, 50) + (request.message.length > 50 ? '...' : '');
+              
+              return (
               <Card key={request.id}
                 className="glass-card rounded-xl p-6 hover:border-white/10 transition-all border-l-4"
-                style={{ borderLeftColor: request.status === 'clarification' ? '#f59e0b' : request.status === 'decision' ? '#10b981' : '#3b82f6' }}>
+                style={{ borderLeftColor: request.ai_decision === 'needs-info' ? '#f59e0b' : request.ai_decision === 'in-scope' ? '#10b981' : request.ai_decision === 'out-of-scope' ? '#ef4444' : '#3b82f6' }}>
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white mb-1">{request.title}</h3>
+                      <h3 className="font-semibold text-white mb-1">{title}</h3>
                       <p className="text-sm text-white/40">
-                        Submitted on {new Date(request.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        Submitted on {new Date(request.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </p>
                     </div>
-                    {request.ai_analysis && <ScopeDecisionBadge decision={request.ai_analysis.decision} />}
+                    {request.ai_decision && <ScopeDecisionBadge decision={request.ai_decision as any} />}
                   </div>
-                  <p className="text-sm text-white/40 line-clamp-2">{request.description}</p>
-                  {request.ai_analysis && (
+                  <p className="text-sm text-white/40 line-clamp-2">{request.message}</p>
+                  {request.ai_decision && request.reasoning && (
                     <div className="p-3 bg-white/[0.02] rounded-lg border border-white/[0.04] text-sm">
                       <p className="text-white/40">
                         <span className="font-medium text-white/60">Decision:</span>{' '}
-                        {Array.isArray(request.ai_analysis.reasoning) ? request.ai_analysis.reasoning.join('. ') : request.ai_analysis.reasoning}
+                        {request.reasoning}
                       </p>
                     </div>
                   )}
-                  {request.status === 'clarification' && request.ai_analysis?.clarificationQuestions && (
-                    <Card className="glass-card rounded-lg p-4 border-amber-500/10">
-                      <p className="font-medium text-sm text-white/70 mb-2">Questions Need Answering:</p>
-                      <ul className="text-sm text-white/40 space-y-1">
-                        {request.ai_analysis.clarificationQuestions.map((q, idx) => (
-                          <li key={idx}>• {typeof q === 'string' ? q : q.question}</li>
-                        ))}
-                      </ul>
-                    </Card>
-                  )}
                 </div>
               </Card>
-            ))
+            )})
           )}
         </div>
       )}

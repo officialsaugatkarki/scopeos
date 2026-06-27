@@ -53,7 +53,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="fixed inset-0 flex bg-[#050A18] overflow-hidden">
+    <div className="fixed inset-0 flex bg-background overflow-hidden text-foreground">
       {/* Sidebar — fixed height, never scrolls with page */}
       <PortalSidebar
         mobileOpen={mobileMenuOpen}

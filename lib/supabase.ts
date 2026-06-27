@@ -154,6 +154,19 @@ export interface ChangeRequest {
   updated_at: string;
 }
 
+export interface Request {
+  id: string;
+  project_id: string;
+  client_id: string;
+  message: string;
+  ai_decision: string;
+  confidence_score: number;
+  reasoning: string;
+  estimated_impact: string;
+  status: string;
+  created_at: string;
+}
+
 export interface PortalMessage {
   id: string;
   project_id: string;

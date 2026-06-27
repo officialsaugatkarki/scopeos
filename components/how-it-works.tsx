@@ -1,117 +1,205 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
+import { Upload, Share2, Cpu, CheckSquare } from 'lucide-react'
 
 export default function HowItWorks() {
   const [isVisible, setIsVisible] = useState(false)
-  const ref = useRef(null)
+  const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
+      ([entry]) => { if (entry.isIntersecting) setIsVisible(true) },
       { threshold: 0.1 }
     )
-    if (ref.current) {
-      observer.observe(ref.current)
-    }
+    if (ref.current) observer.observe(ref.current)
     return () => observer.disconnect()
   }, [])
 
   const steps = [
-    { number: '1', title: 'Upload Scope Doc', description: 'Define your baseline scope and rates' },
-    { number: '2', title: 'Share Client Portal', description: 'Give clients an easy way to submit requests' },
-    { number: '3', title: 'AI Analyzes Requests', description: 'Get instant scope determination' },
-    { number: '4', title: 'Approve & Send', description: 'Review and send change requests' },
+    {
+      icon: Upload,
+      number: '01',
+      title: 'Upload Scope Doc',
+      description: 'Define your baseline scope, deliverables, and hourly rates. ScopeOS AI reads and understands everything.',
+    },
+    {
+      icon: Share2,
+      number: '02',
+      title: 'Share Client Portal',
+      description: 'Give clients a beautiful, branded portal to submit requests, view decisions, and approve change orders.',
+    },
+    {
+      icon: Cpu,
+      number: '03',
+      title: 'AI Analyzes Requests',
+      description: 'Every message is instantly analyzed. AI compares it to your scope, sets a confidence score, and drafts a response.',
+    },
+    {
+      icon: CheckSquare,
+      number: '04',
+      title: 'Approve & Send',
+      description: 'Your PM reviews the AI draft in one click. Approve, edit, or escalate. Clients get professional, consistent answers.',
+    },
   ]
 
   return (
-    <section id="how-it-works" ref={ref} className="py-24 px-4 sm:px-6 lg:px-8">
+    <section
+      id="how-it-works"
+      ref={ref}
+      className="py-28 px-4 sm:px-6 lg:px-8 relative z-10"
+    >
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 text-balance tracking-tight">
-            How It Works
+
+        {/* Section Header */}
+        <div className="text-center mb-20">
+          <div
+            className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase text-blue-400"
+            style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}
+          >
+            How it works
+          </div>
+          <h2
+            className="font-black text-white text-balance mb-5"
+            style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', lineHeight: 1.1, letterSpacing: '-0.03em' }}
+          >
+            Up and running{' '}
+            <span style={{ background: 'linear-gradient(135deg, #60A5FA 0%, #93C5FD 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              in 10 minutes
+            </span>
           </h2>
-          <p className="text-lg text-white/40 max-w-2xl mx-auto text-balance">
-            Four simple steps to eliminate scope creep and protect your margins
+          <p className="text-lg max-w-2xl mx-auto text-balance" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            Four simple steps to eliminate scope creep and protect your margins permanently.
           </p>
         </div>
 
-        {/* Timeline */}
-        <div className="relative">
-          {/* Desktop Timeline */}
-          <div className="hidden md:block">
-            <div className="grid grid-cols-4 gap-4 mb-8">
-              {steps.map((step, index) => (
-                <div key={index} className="relative">
-                  {/* Step Circle */}
-                  <div
-                    className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-white flex items-center justify-center font-bold text-xl mx-auto mb-4 transition-all duration-500 shadow-lg shadow-blue-500/20 ${
-                      isVisible ? 'scale-100' : 'scale-0'
-                    }`}
-                    style={{ transitionDelay: `${index * 100}ms` }}
-                  >
-                    {step.number}
-                  </div>
+        {/* Steps Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 relative mb-20">
+          {/* Connecting line (desktop only) */}
+          <div
+            className="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-px pointer-events-none"
+            style={{
+              background: 'linear-gradient(to right, transparent, rgba(59,130,246,0.3) 20%, rgba(59,130,246,0.3) 80%, transparent)',
+              opacity: isVisible ? 1 : 0,
+              transition: 'opacity 0.8s ease 0.6s',
+            }}
+          />
 
-                  {/* Connecting Line */}
-                  {index < steps.length - 1 && (
-                    <div
-                      className={`absolute top-8 left-[60%] right-0 h-[2px] bg-gradient-to-r from-blue-500/50 to-blue-500/10 transition-all duration-700 ${
-                        isVisible ? 'w-full' : 'w-0'
-                      }`}
-                      style={{ transitionDelay: `${index * 100 + 200}ms` }}
-                    ></div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Step Content */}
-            <div className="grid grid-cols-4 gap-4">
-              {steps.map((step, index) => (
-                <div
-                  key={index}
-                  className={`text-center transition-all duration-500 ${
-                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                  }`}
-                  style={{ transitionDelay: `${index * 100 + 300}ms` }}
-                >
-                  <h3 className="font-semibold text-white mb-2">{step.title}</h3>
-                  <p className="text-sm text-white/40">{step.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Mobile Timeline */}
-          <div className="md:hidden space-y-6">
-            {steps.map((step, index) => (
+          {steps.map((step, index) => {
+            const Icon = step.icon
+            return (
               <div
                 key={index}
-                className={`flex gap-4 transition-all duration-500 ${
-                  isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+                className={`flex flex-col items-center text-center transition-all duration-700 ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
-                style={{ transitionDelay: `${index * 100}ms` }}
+                style={{ transitionDelay: `${index * 120}ms` }}
               >
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/20">
-                    {step.number}
+                {/* Icon circle */}
+                <div className="relative mb-6">
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      backdropFilter: 'blur(16px)',
+                      WebkitBackdropFilter: 'blur(16px)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                      transform: isVisible ? 'scale(1)' : 'scale(0.5)',
+                      transition: `transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${index * 120 + 100}ms`,
+                    }}
+                  >
+                    <Icon className="w-6 h-6 text-blue-400" />
                   </div>
-                  {index < steps.length - 1 && (
-                    <div className="w-[2px] h-12 bg-gradient-to-b from-blue-500/40 to-transparent mt-2"></div>
-                  )}
+                  <span className="absolute -top-1 -right-1 text-[9px] font-black text-white bg-blue-500 px-1.5 py-0.5 rounded-full">
+                    {step.number}
+                  </span>
                 </div>
-                <div className="pb-6 pt-1">
-                  <h3 className="font-semibold text-white mb-1">{step.title}</h3>
-                  <p className="text-sm text-white/40">{step.description}</p>
+
+                <h3 className="font-bold text-white text-[15px] mb-2 tracking-tight">{step.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{step.description}</p>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Client Portal Preview — Dark Glass Panel */}
+        <div
+          className={`transition-all duration-1000 delay-700 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+          }`}
+        >
+          <p className="text-center text-xs font-bold tracking-widest uppercase mb-8" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Client Experience
+          </p>
+
+          <div
+            className="rounded-[2rem] overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            {/* Portal Header */}
+            <div className="px-6 py-4 flex items-center justify-between border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#2563EB] to-[#1A56DB] flex items-center justify-center shadow-sm">
+                  <span className="text-white font-bold text-xs">SO</span>
+                </div>
+                <span className="text-white text-sm font-semibold">Client Portal — Acme Corp</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="text-white/50 text-xs font-medium">Active</span>
+              </div>
+            </div>
+
+            {/* Chat area */}
+            <div className="p-6 space-y-4">
+              {/* Client message */}
+              <div className="flex justify-end">
+                <div className="max-w-sm rounded-2xl rounded-br-sm px-4 py-3 bg-blue-600/20 border border-blue-500/30">
+                  <p className="text-white/90 text-sm">Can we add a dark mode to the app? Also want push notifications.</p>
+                  <p className="text-blue-200/50 text-xs mt-1">2 min ago</p>
                 </div>
               </div>
-            ))}
+
+              {/* AI response */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2563EB] to-[#1A56DB] flex items-center justify-center shrink-0 shadow-sm">
+                  <span className="text-white text-xs font-bold">AI</span>
+                </div>
+                <div
+                  className="max-w-sm rounded-2xl rounded-bl-sm px-4 py-3"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <p className="text-white/90 text-sm mb-3">
+                    I analyzed your request against your project scope. Here's what I found:
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✓ In Scope</span>
+                      <span className="text-white/50 text-xs">Push notifications (Phase 2 spec §3.4)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">⚡ Change Request</span>
+                      <span className="text-white/50 text-xs">Dark mode — not in original scope</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-white/10">
+                    <p className="text-white/40 text-xs">Change request draft ready • Est. 18hrs • $2,700</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <p className="text-center text-sm mt-6 font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            ↑ Client portal — clear scope decisions, zero ambiguity
+          </p>
         </div>
       </div>
     </section>

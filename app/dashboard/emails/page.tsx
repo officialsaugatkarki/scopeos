@@ -20,8 +20,8 @@ export default function EmailsPage() {
     agencyName: 'Creative Agency',
     pmName: 'Sarah Johnson',
     projectName: 'Website Redesign',
-    portalLink: 'https://portal.scopeguard.ai/projects/proj-1',
-    magicEmail: 'magic-email@requests.scopeguard.ai',
+    portalLink: 'https://portal.scopeos.ai/projects/proj-1',
+    magicEmail: 'magic-email@requests.scopeos.ai',
     requestTitle: 'Add customer testimonials section',
     requestDescription: 'Add a carousel with customer testimonials and photos',
   };

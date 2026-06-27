@@ -38,9 +38,9 @@ export default function PortalRequestsPage() {
     // Filter by status
     if (filter !== 'all') {
       filtered = filtered.filter(r => {
-        const decision = r.ai_analysis?.decision;
-        if (filter === 'pending') return !decision || r.status === 'submitted' || r.status === 'reviewing';
-        if (filter === 'completed') return r.status === 'completed' || r.status === 'decision';
+        const decision = r.ai_decision;
+        if (filter === 'pending') return !decision || r.status === 'submitted' || r.status === 'pending' || r.status === 'analyzed';
+        if (filter === 'completed') return r.status === 'completed' || r.status === 'approved' || r.status === 'rejected';
         return decision === filter;
       });
     }
@@ -49,8 +49,7 @@ export default function PortalRequestsPage() {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter(r =>
-        r.title.toLowerCase().includes(q) ||
-        r.description.toLowerCase().includes(q)
+        r.message.toLowerCase().includes(q)
       );
     }
 
@@ -59,10 +58,10 @@ export default function PortalRequestsPage() {
 
   const filterOptions: { value: FilterStatus; label: string; count: number; color: string }[] = [
     { value: 'all', label: 'All', count: requests.length, color: 'text-white/60' },
-    { value: 'in-scope', label: 'In Scope', count: requests.filter(r => r.ai_analysis?.decision === 'in-scope').length, color: 'text-emerald-400' },
-    { value: 'out-of-scope', label: 'Out of Scope', count: requests.filter(r => r.ai_analysis?.decision === 'out-of-scope').length, color: 'text-red-400' },
-    { value: 'needs-info', label: 'Needs Info', count: requests.filter(r => r.ai_analysis?.decision === 'needs-info').length, color: 'text-amber-400' },
-    { value: 'pending', label: 'Pending', count: requests.filter(r => !r.ai_analysis?.decision || r.status === 'submitted').length, color: 'text-blue-400' },
+    { value: 'in-scope', label: 'In Scope', count: requests.filter(r => r.ai_decision === 'in-scope').length, color: 'text-emerald-400' },
+    { value: 'out-of-scope', label: 'Out of Scope', count: requests.filter(r => r.ai_decision === 'out-of-scope').length, color: 'text-red-400' },
+    { value: 'needs-info', label: 'Needs Info', count: requests.filter(r => r.ai_decision === 'needs-info').length, color: 'text-amber-400' },
+    { value: 'pending', label: 'Pending', count: requests.filter(r => !r.ai_decision || r.status === 'pending' || r.status === 'analyzed').length, color: 'text-blue-400' },
   ];
 
   const getDecisionIcon = (decision?: string) => {
@@ -86,9 +85,10 @@ export default function PortalRequestsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed': return <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">Completed</span>;
-      case 'decision': return <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/15">Decided</span>;
-      case 'clarification': return <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/15">Awaiting Response</span>;
-      default: return <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] text-white/40 border border-white/[0.06]">Submitted</span>;
+      case 'approved': return <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">Approved</span>;
+      case 'rejected': return <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/15">Rejected</span>;
+      case 'analyzed': return <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/15">Analyzed</span>;
+      default: return <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] text-white/40 border border-white/[0.06]">Pending</span>;
     }
   };
 
@@ -166,8 +166,11 @@ export default function PortalRequestsPage() {
       ) : (
         <div className="space-y-3">
           {filteredRequests.map((request) => {
-            const decision = request.ai_analysis?.decision;
+            const decision = request.ai_decision;
             const isExpanded = expandedId === request.id;
+
+            // Generate title from message
+            const title = request.message.substring(0, 60) + (request.message.length > 60 ? '...' : '');
 
             return (
               <Card
@@ -188,7 +191,7 @@ export default function PortalRequestsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3 mb-1">
-                        <h3 className="font-semibold text-white text-sm truncate">{request.title}</h3>
+                        <h3 className="font-semibold text-white text-sm truncate">{title}</h3>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {getDecisionBadge(decision)}
                           <button className="text-white/20 hover:text-white/40 transition-colors">
@@ -196,22 +199,16 @@ export default function PortalRequestsPage() {
                           </button>
                         </div>
                       </div>
-                      <p className="text-xs text-white/40 line-clamp-1">{request.description}</p>
+                      <p className="text-xs text-white/40 line-clamp-1">{request.message}</p>
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
                         <span className="flex items-center gap-1 text-[11px] text-white/30">
                           <Calendar className="w-3 h-3" />
-                          {formatDistanceToNow(new Date(request.submitted_at || request.created_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
                         </span>
-                        {request.ai_analysis?.estimatedHours && (
-                          <span className="flex items-center gap-1 text-[11px] text-white/30">
-                            <Clock className="w-3 h-3" />
-                            {request.ai_analysis.estimatedHours} hrs
-                          </span>
-                        )}
-                        {request.ai_analysis?.costImpact && (
+                        {request.estimated_impact && decision === 'out-of-scope' && (
                           <span className="flex items-center gap-1 text-[11px] text-amber-400/60">
                             <DollarSign className="w-3 h-3" />
-                            {request.ai_analysis.costImpact}
+                            Est: {request.estimated_impact}
                           </span>
                         )}
                         {getStatusBadge(request.status)}
@@ -224,59 +221,37 @@ export default function PortalRequestsPage() {
                 {isExpanded && (
                   <div className="px-4 md:px-5 pb-4 md:pb-5 pt-0 space-y-3 border-t border-white/[0.04]">
                     <div className="pt-3">
-                      <h4 className="text-xs font-medium text-white/50 uppercase tracking-wider mb-2">Description</h4>
-                      <p className="text-sm text-white/60 whitespace-pre-wrap">{request.description}</p>
+                      <h4 className="text-xs font-medium text-white/50 uppercase tracking-wider mb-2">Message</h4>
+                      <p className="text-sm text-white/60 whitespace-pre-wrap">{request.message}</p>
                     </div>
 
-                    {request.ai_analysis && (
+                    {decision && (
                       <div className="space-y-3">
                         <h4 className="text-xs font-medium text-white/50 uppercase tracking-wider">AI Analysis</h4>
                         <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] space-y-2">
-                          {request.ai_analysis.reasoning && (
+                          {request.reasoning && (
                             <div>
                               <p className="text-xs text-white/30 mb-1">Reasoning</p>
                               <p className="text-sm text-white/60">
-                                {Array.isArray(request.ai_analysis.reasoning)
-                                  ? request.ai_analysis.reasoning.join('. ')
-                                  : request.ai_analysis.reasoning}
+                                {request.reasoning}
                               </p>
                             </div>
                           )}
-                          <div className="flex items-center gap-4 flex-wrap">
-                            {request.ai_analysis.confidence && (
+                          <div className="flex items-center gap-4 flex-wrap mt-2">
+                            {request.confidence_score !== undefined && (
                               <div>
                                 <p className="text-xs text-white/30 mb-0.5">Confidence</p>
-                                <p className="text-sm text-white/70 font-medium">{Math.round(request.ai_analysis.confidence * 100)}%</p>
+                                <p className="text-sm text-white/70 font-medium">{Math.round(request.confidence_score)}%</p>
                               </div>
                             )}
-                            {request.ai_analysis.estimatedHours && (
-                              <div>
-                                <p className="text-xs text-white/30 mb-0.5">Est. Hours</p>
-                                <p className="text-sm text-white/70 font-medium">{request.ai_analysis.estimatedHours}</p>
-                              </div>
-                            )}
-                            {request.ai_analysis.costImpact && (
+                            {request.estimated_impact && decision === 'out-of-scope' && (
                               <div>
                                 <p className="text-xs text-white/30 mb-0.5">Cost Impact</p>
-                                <p className="text-sm text-amber-400 font-medium">{request.ai_analysis.costImpact}</p>
+                                <p className="text-sm text-amber-400 font-medium">{request.estimated_impact}</p>
                               </div>
                             )}
                           </div>
                         </div>
-
-                        {request.ai_analysis.clarificationQuestions && request.ai_analysis.clarificationQuestions.length > 0 && (
-                          <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                            <p className="text-xs font-medium text-amber-400 mb-2">Questions to Answer:</p>
-                            <ul className="space-y-1">
-                              {request.ai_analysis.clarificationQuestions.map((q, idx) => (
-                                <li key={idx} className="text-xs text-white/40 flex items-start gap-2">
-                                  <span className="text-amber-400/60">•</span>
-                                  {typeof q === 'string' ? q : q.question}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>

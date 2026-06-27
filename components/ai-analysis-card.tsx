@@ -49,7 +49,7 @@ export default function AIAnalysisCard({ analysis }: AIAnalysisCardProps) {
             {getDecisionIcon()}
             <div>
               <h3 className="font-semibold text-white">AI Decision</h3>
-              <p className="text-sm text-white/40">ScopeGuard Analysis</p>
+              <p className="text-sm text-white/40">ScopeOS Analysis</p>
             </div>
           </div>
           <Badge variant="outline" className="px-3 py-1 border-white/10 text-white/70">{getDecisionText()}</Badge>

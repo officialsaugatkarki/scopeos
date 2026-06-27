@@ -34,7 +34,7 @@ export function EmptyRequests() {
       <Button variant="outline" className="mb-4">
         Copy Portal Link
       </Button>
-      <p className="text-sm text-muted-foreground">Or forward emails to: requests@scopeguard.io</p>
+      <p className="text-sm text-muted-foreground">Or forward emails to: requests@scopeos.io</p>
     </div>
   );
 }

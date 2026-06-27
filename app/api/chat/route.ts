@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { buildSystemPrompt, parseAIResponse, messagesToChatFormat } from '@/lib/ai-system-prompt';
-import type { Project, ScopeRequest, PortalMessage, AgencyPricing } from '@/lib/supabase';
+import type { Project, Request as UnifiedRequest, PortalMessage, AgencyPricing } from '@/lib/supabase';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
 
     // 4. Fetch recent scope requests for context
     const { data: recentRequests } = await supabase
-      .from('scope_requests')
+      .from('requests')
       .select('*')
       .eq('project_id', typedProject.id)
-      .order('submitted_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(10);
 
     // 5. Build system prompt
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       project: typedProject,
       agencyName: profile?.agency_name || '',
       pricing: effectivePricing,
-      recentRequests: (recentRequests || []) as ScopeRequest[],
+      recentRequests: (recentRequests || []) as any[], // Typing works with old ScopeRequest, so we pass as any for now
     });
 
     // 6. Save client message (non-blocking — table may not exist yet)
@@ -177,83 +177,30 @@ export async function POST(request: NextRequest) {
     // 9. Parse response for scope decision
     const { cleanContent, decision } = parseAIResponse(rawResponse);
 
-    // 10. Create scope_request or change_request based on decision
+    // 10. Create unified request record for the client message
     let metadata: Record<string, unknown> = {};
 
     if (decision) {
       metadata = { ...decision };
+    }
 
-      if (decision.decision === 'in-scope') {
-        // Auto-create scope request with approval
-        const { data: scopeReq } = await supabase
-          .from('scope_requests')
-          .insert({
-            project_id: typedProject.id,
-            client_name: typedProject.client_name,
-            client_email: typedProject.client_email,
-            title: decision.title || 'Chat Request',
-            description: message,
-            status: 'decision',
-            ai_analysis: {
-              decision: 'in-scope',
-              confidence: 0.9,
-              reasoning: [decision.reasoning],
-              estimatedHours: String(decision.estimatedHours || ''),
-              suggestedAction: 'CREATE_TASK',
-            },
-            submitted_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
+    const { data: requestRecord } = await supabase
+      .from('requests')
+      .insert({
+        project_id: typedProject.id,
+        client_id: typedProject.client_email,
+        message: message,
+        ai_decision: decision?.decision || 'needs-info',
+        confidence_score: decision ? 0.9 : 0, // Fallback if no exact confidence from decision
+        reasoning: decision?.reasoning || '',
+        estimated_impact: decision?.estimatedHours ? `${decision.estimatedHours} hrs` : (decision?.cost || ''),
+        status: decision?.decision === 'out-of-scope' ? 'out-of-scope' : 'analyzed',
+      })
+      .select()
+      .single();
 
-        if (scopeReq) {
-          metadata.scopeRequestId = scopeReq.id;
-        }
-      } else if (decision.decision === 'out-of-scope') {
-        // Create change request with cost
-        const { data: changeReq } = await supabase
-          .from('change_requests')
-          .insert({
-            project_id: typedProject.id,
-            client: typedProject.client_name,
-            description: `${decision.title}: ${message}`,
-            status: 'pending',
-            estimated_hours: decision.estimatedHours || 0,
-          })
-          .select()
-          .single();
-
-        if (changeReq) {
-          metadata.changeRequestId = changeReq.id;
-        }
-
-        // Also create scope request for dashboard tracking
-        const { data: scopeReq } = await supabase
-          .from('scope_requests')
-          .insert({
-            project_id: typedProject.id,
-            client_name: typedProject.client_name,
-            client_email: typedProject.client_email,
-            title: decision.title || 'Chat Request',
-            description: message,
-            status: 'decision',
-            ai_analysis: {
-              decision: 'out-of-scope',
-              confidence: 0.9,
-              reasoning: [decision.reasoning],
-              estimatedHours: String(decision.estimatedHours || ''),
-              costImpact: decision.cost,
-              suggestedAction: 'GENERATE_CHANGE_REQUEST',
-            },
-            submitted_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-
-        if (scopeReq) {
-          metadata.scopeRequestId = scopeReq.id;
-        }
-      }
+    if (requestRecord) {
+      metadata.requestId = requestRecord.id;
     }
 
     // 11. Save AI response (non-blocking)

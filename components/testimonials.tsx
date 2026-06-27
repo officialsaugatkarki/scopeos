@@ -1,101 +1,78 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
 import { Star } from 'lucide-react'
 
 export default function Testimonials() {
-  const [isVisible, setIsVisible] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-    if (ref.current) {
-      observer.observe(ref.current)
-    }
-    return () => observer.disconnect()
-  }, [])
-
   const testimonials = [
     {
-      quote: 'We caught $12K in out-of-scope work in the first month. Paid for itself 40x over.',
-      author: 'Sarah Chen',
-      role: 'Head of Delivery',
-      company: 'DevShop Co',
-      initials: 'SC',
+      quote: "Scope creep was killing us. ScopeOS AI turned our biggest vulnerability into our biggest competitive strength.",
+      author: 'Sarah Jenkins',
+      role: 'CEO, PixelForge Agency',
+      stats: 'Recovered $40k/mo',
+      color: 'blue'
     },
     {
-      quote: 'Finally, a tool that speaks our language. Our clients love the clarity and we love the margins.',
-      author: 'Marcus Johnson',
-      role: 'Founder',
-      company: 'TechFlow Studios',
-      initials: 'MJ',
+      quote: "We caught $12K in out-of-scope work in the first month. ScopeOS paid for itself 40x over.",
+      author: 'David Chen',
+      role: 'Operations Director, DevStudio',
+      stats: '15% margin increase',
+      color: 'emerald'
     },
     {
-      quote: 'Scope creep was killing us. ScopeGuard AI turned our biggest vulnerability into our biggest strength.',
+      quote: "Clients actually prefer the AI portal. It removes the emotion from scope conversations. It's just facts.",
       author: 'Elena Rodriguez',
-      role: 'Operations Manager',
-      company: 'BuildLabs',
-      initials: 'ER',
-    },
+      role: 'Head of Delivery, Nova Web',
+      stats: '98% client retention',
+      color: 'indigo'
+    }
   ]
 
   return (
-    <section id="testimonials" ref={ref} className="py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <section id="testimonials" className="py-24 relative overflow-hidden">
+      {/* Soft Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 text-balance tracking-tight">
-            Loved by Dev Agencies
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+            Loved by the best agencies
           </h2>
-          <p className="text-lg text-white/40 max-w-2xl mx-auto text-balance">
-            See how leading agencies are protecting their margins with ScopeGuard AI
+          <p className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed">
+            See how leading development agencies are protecting their margins with ScopeOS.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((testimonial, index) => (
+        <div className="grid md:grid-cols-3 gap-6">
+          {testimonials.map((t, i) => (
             <div
-              key={index}
-              className={`transition-all duration-700 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
+              key={i}
+              className="p-8 rounded-[2rem] flex flex-col h-full relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300"
+              style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+              }}
             >
-              <div className="glass-card rounded-2xl p-8 h-full hover:border-white/10 transition-all duration-300">
-                {/* Stars */}
-                <div className="flex gap-1 mb-5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 fill-amber-400 text-amber-400"
-                    />
-                  ))}
+              <div className="flex gap-1 mb-6">
+                {[1,2,3,4,5].map(star => (
+                  <Star key={star} className={`w-4 h-4 fill-${t.color}-400 text-${t.color}-400 opacity-90`} />
+                ))}
+              </div>
+              
+              <blockquote className="text-[15px] leading-relaxed text-white/90 mb-8 flex-1">
+                "{t.quote}"
+              </blockquote>
+              
+              <div className="flex items-center justify-between pt-6 border-t border-white/10">
+                <div>
+                  <div className="font-bold text-white text-[13px]">{t.author}</div>
+                  <div className="text-white/50 text-[11px]">{t.role}</div>
                 </div>
-
-                {/* Quote */}
-                <p className="text-white/70 mb-6 leading-relaxed text-sm">
-                  &quot;{testimonial.quote}&quot;
-                </p>
-
-                {/* Author */}
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-400/10 border border-blue-500/20 flex items-center justify-center text-sm font-semibold text-blue-400">
-                    {testimonial.initials}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white text-sm">
-                      {testimonial.author}
-                    </p>
-                    <p className="text-xs text-white/40">
-                      {testimonial.role}, {testimonial.company}
-                    </p>
-                  </div>
+                <div className={`text-[11px] font-bold text-${t.color}-400 bg-${t.color}-500/10 px-2 py-1 rounded-md border border-${t.color}-500/20`}>
+                  {t.stats}
                 </div>
               </div>
             </div>

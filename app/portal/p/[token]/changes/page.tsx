@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { usePortal } from '@/components/portal-context';
-import { updateChangeRequest } from '@/lib/database';
+import { updateRequest } from '@/lib/database';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,39 +12,47 @@ import {
   Clock,
   MessageSquare,
   AlertTriangle,
-  TrendingUp,
-  ArrowRight,
   Shield,
   Loader2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function PortalChangesPage() {
-  const { changeRequests, refreshChangeRequests, project } = usePortal();
+  const { requests, refreshRequests, project } = usePortal();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   if (!project) return null;
 
+  // Filter requests that are out-of-scope to act as change requests
+  const changeRequests = requests.filter(r => r.ai_decision === 'out-of-scope');
+
   // Stats
-  const pendingCRs = changeRequests.filter(cr => cr.status === 'pending');
+  const pendingCRs = changeRequests.filter(cr => cr.status === 'pending' || cr.status === 'analyzed' || cr.status === 'submitted');
   const approvedCRs = changeRequests.filter(cr => cr.status === 'approved');
   const rejectedCRs = changeRequests.filter(cr => cr.status === 'rejected');
 
+  // Helper to parse estimated hours
+  const parseHours = (impact?: string) => {
+    if (!impact) return 0;
+    const match = impact.match(/(\d+)\s*hrs?/i);
+    return match ? parseInt(match[1], 10) : 0;
+  };
+
   const totalPendingCost = pendingCRs.reduce((sum, cr) => {
     const rate = 150; // default rate
-    return sum + (cr.estimated_hours * rate);
+    return sum + (parseHours(cr.estimated_impact) * rate);
   }, 0);
 
   const totalApprovedCost = approvedCRs.reduce((sum, cr) => {
     const rate = 150;
-    return sum + (cr.estimated_hours * rate);
+    return sum + (parseHours(cr.estimated_impact) * rate);
   }, 0);
 
   const handleAction = async (id: string, status: 'approved' | 'rejected') => {
     setActionLoading(id);
     try {
-      await updateChangeRequest(id, { status });
-      await refreshChangeRequests();
+      await updateRequest(id, { status });
+      await refreshRequests();
     } catch (e) {
       console.error('Error updating change request:', e);
     } finally {
@@ -56,8 +64,12 @@ export default function PortalChangesPage() {
     switch (status) {
       case 'approved': return { icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', label: 'Approved' };
       case 'rejected': return { icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', label: 'Rejected' };
-      case 'in-review': return { icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', label: 'In Review' };
-      default: return { icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', label: 'Pending Approval' };
+      case 'analyzed':
+      case 'pending':
+      case 'submitted':
+        return { icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', label: 'Pending Approval' };
+      default:
+        return { icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', label: 'In Review' };
     }
   };
 
@@ -133,12 +145,15 @@ export default function PortalChangesPage() {
           {changeRequests.map((cr) => {
             const config = getStatusConfig(cr.status);
             const StatusIcon = config.icon;
-            const estimatedCost = cr.estimated_hours * 150;
+            const hours = parseHours(cr.estimated_impact);
+            const estimatedCost = hours * 150;
             const isLoading = actionLoading === cr.id;
+            const title = cr.message.substring(0, 80) + (cr.message.length > 80 ? '...' : '');
+            const isPending = cr.status === 'pending' || cr.status === 'analyzed' || cr.status === 'submitted';
 
             return (
               <Card key={cr.id} className={`glass-card rounded-xl overflow-hidden transition-all hover:border-white/10 ${
-                cr.status === 'pending' ? 'border-l-4 border-l-amber-500/40' :
+                isPending ? 'border-l-4 border-l-amber-500/40' :
                 cr.status === 'approved' ? 'border-l-4 border-l-emerald-500/40' :
                 cr.status === 'rejected' ? 'border-l-4 border-l-red-500/40' :
                 'border-l-4 border-l-blue-500/40'
@@ -147,9 +162,9 @@ export default function PortalChangesPage() {
                   {/* Top row */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-white truncate">{cr.description}</p>
+                      <p className="text-sm font-semibold text-white">{title}</p>
                       <p className="text-xs text-white/30 mt-1">
-                        Submitted by {cr.client} • {formatDistanceToNow(new Date(cr.created_at), { addSuffix: true })}
+                        Submitted by {project.client_name} • {formatDistanceToNow(new Date(cr.created_at), { addSuffix: true })}
                       </p>
                     </div>
                     <span className={`text-[11px] px-2 py-0.5 rounded-full ${config.bg} ${config.color} border ${config.border} font-medium flex items-center gap-1 flex-shrink-0`}>
@@ -162,7 +177,7 @@ export default function PortalChangesPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] mb-3">
                     <div>
                       <p className="text-[10px] text-white/30 uppercase tracking-wider">Est. Hours</p>
-                      <p className="text-sm font-bold text-white mt-0.5">{cr.estimated_hours} hrs</p>
+                      <p className="text-sm font-bold text-white mt-0.5">{hours > 0 ? `${hours} hrs` : 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-white/30 uppercase tracking-wider">Rate</p>
@@ -175,7 +190,7 @@ export default function PortalChangesPage() {
                   </div>
 
                   {/* Actions (only for pending) */}
-                  {cr.status === 'pending' && (
+                  {isPending && (
                     <div className="flex items-center gap-2 flex-wrap">
                       <Button
                         onClick={(e) => { e.stopPropagation(); handleAction(cr.id, 'approved'); }}

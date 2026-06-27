@@ -34,7 +34,7 @@ export default function Home() {
   }
 
   return (
-    <main className="w-full">
+    <main className="w-full landing-page">
       <Header />
       <HeroSection />
       <SocialProofBar />

@@ -1,9 +1,9 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { getScopeRequest, getProjects } from '@/lib/database';
+import { getRequest, getProjects } from '@/lib/database';
 import { getCurrentUserId } from '@/lib/auth';
-import type { ScopeRequest, ScopeRequestHistory, Project } from '@/lib/supabase';
+import type { Request, Project } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,23 +11,21 @@ import { useState, useEffect } from 'react';
 import AIAnalysisCard from '@/components/ai-analysis-card';
 import RequestTimeline from '@/components/request-timeline';
 import RequestActionsPanel from '@/components/request-actions-panel';
-import ScopeDecisionBadge from '@/components/scope-decision-badge';
-import ClarificationPanel from '@/components/clarification-panel';
-import { ArrowLeft, User, Mail, Calendar } from 'lucide-react';
+import { ArrowLeft, User, Mail } from 'lucide-react';
 
 export default function RequestDetailPage() {
   const params = useParams();
   const router = useRouter();
   const requestId = params?.id as string;
   const [mounted, setMounted] = useState(false);
-  const [request, setRequest] = useState<(ScopeRequest & { history: ScopeRequestHistory[] }) | null>(null);
+  const [request, setRequest] = useState<Request | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
     const loadData = async () => {
-      const req = await getScopeRequest(requestId);
+      const req = await getRequest(requestId);
       setRequest(req);
       if (req) {
         const userId = await getCurrentUserId();
@@ -74,27 +72,60 @@ export default function RequestDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'submitted': return 'border-blue-500/20';
-      case 'reviewing': return 'border-purple-500/20';
+      case 'pending': return 'border-blue-500/20';
+      case 'analyzed': return 'border-purple-500/20';
       case 'clarification': return 'border-amber-500/20';
       case 'decision': return 'border-emerald-500/20';
+      case 'approved': return 'border-emerald-500/20';
+      case 'rejected': return 'border-red-500/20';
       case 'completed': return 'border-white/10';
       default: return 'border-white/[0.06]';
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const labels: Record<string, string> = { submitted: 'Submitted', reviewing: 'AI Reviewing', clarification: 'Clarification Needed', decision: 'Decision Made', completed: 'Completed' };
+    const labels: Record<string, string> = { 
+      submitted: 'Submitted', 
+      pending: 'Pending', 
+      analyzed: 'AI Analyzed', 
+      clarification: 'Clarification Needed', 
+      decision: 'Decision Made', 
+      approved: 'Approved',
+      rejected: 'Rejected',
+      completed: 'Completed' 
+    };
     return labels[status] || status;
   };
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  const adaptedRequest = {
+  // Map to the format needed by RequestTimeline
+  const adaptedRequestForTimeline = {
     ...request,
-    clientName: request.client_name, clientEmail: request.client_email, clientId: request.client_id,
-    projectId: request.project_id, submittedAt: request.submitted_at, aiAnalysis: request.ai_analysis,
-    pmNotes: request.pm_notes, createdDraftAt: request.created_draft_at, completedAt: request.completed_at,
-    history: (request.history || []).map((h) => ({ timestamp: h.created_at, action: h.action, actor: h.actor, details: h.details })),
+    title: request.message.split('\n')[0].substring(0, 50),
+    description: request.message,
+    clientName: request.client_id, 
+    clientEmail: request.client_id, 
+    clientId: request.client_id,
+    projectId: request.project_id, 
+    submittedAt: request.created_at, 
+    aiAnalysis: {
+      decision: request.ai_decision as any,
+      confidence: request.confidence_score,
+      reasoning: [request.reasoning],
+      suggestedAction: 'CREATE_TASK' as const,
+      costImpact: request.estimated_impact,
+      estimatedHours: request.estimated_impact,
+    },
+    pmNotes: '',
+    createdDraftAt: null, 
+    completedAt: request.status === 'completed' ? request.created_at : null,
+    history: [{
+      timestamp: request.created_at,
+      action: 'created',
+      actor: request.client_id,
+      details: 'Request was created'
+    }]
   };
 
   return (
@@ -104,7 +135,7 @@ export default function RequestDetailPage() {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-white">{request.title}</h1>
+          <h1 className="text-3xl font-bold text-white line-clamp-1">{request.message.split('\n')[0].substring(0, 60)}</h1>
           <p className="text-white/40">Project: {project?.name || 'Unknown'}</p>
         </div>
       </div>
@@ -117,9 +148,7 @@ export default function RequestDetailPage() {
               <Badge variant="outline" className="border-white/10 text-white/60">{getStatusBadge(request.status)}</Badge>
             </div>
             <div className="grid grid-cols-3 gap-4 text-sm">
-              <div><p className="text-white/30 text-xs mb-1">Submitted</p><p className="font-medium text-white/80">{formatDate(request.submitted_at)}</p></div>
-              {request.created_draft_at && (<div><p className="text-white/30 text-xs mb-1">Draft Created</p><p className="font-medium text-white/80">{formatDate(request.created_draft_at)}</p></div>)}
-              {request.completed_at && (<div><p className="text-white/30 text-xs mb-1">Completed</p><p className="font-medium text-white/80">{formatDate(request.completed_at)}</p></div>)}
+              <div><p className="text-white/30 text-xs mb-1">Submitted</p><p className="font-medium text-white/80">{formatDate(request.created_at)}</p></div>
             </div>
           </Card>
 
@@ -128,37 +157,22 @@ export default function RequestDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <User className="w-4 h-4 text-white/30" />
-                <div><p className="text-xs text-white/30">Name</p><p className="font-medium text-white/80">{request.client_name}</p></div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-white/30" />
-                <div><p className="text-xs text-white/30">Email</p><p className="font-medium text-white/80">{request.client_email}</p></div>
+                <div><p className="text-xs text-white/30">Client ID / Email</p><p className="font-medium text-white/80">{request.client_id}</p></div>
               </div>
             </div>
           </Card>
 
           <Card className="glass-card rounded-xl p-6">
-            <h3 className="font-semibold text-white mb-3">Request Description</h3>
-            <p className="text-sm text-white/40 leading-relaxed whitespace-pre-wrap">{request.description}</p>
+            <h3 className="font-semibold text-white mb-3">Request Message</h3>
+            <p className="text-sm text-white/40 leading-relaxed whitespace-pre-wrap">{request.message}</p>
           </Card>
 
-          {request.ai_analysis && <AIAnalysisCard analysis={request.ai_analysis} />}
-
-          {request.status === 'clarification' && request.ai_analysis?.clarificationQuestions && (
-            <ClarificationPanel questions={request.ai_analysis.clarificationQuestions} onSubmit={(answers) => { console.log('Clarification answers:', answers); }} />
-          )}
-
-          {request.pm_notes && (
-            <Card className="glass-card rounded-xl p-6 border-l-4 border-l-amber-500/40">
-              <h3 className="font-semibold text-white mb-2">PM Notes</h3>
-              <p className="text-sm text-white/40 italic">{request.pm_notes}</p>
-            </Card>
-          )}
+          {request.ai_decision && <AIAnalysisCard analysis={adaptedRequestForTimeline.aiAnalysis} />}
         </div>
 
         <div className="space-y-6">
           <RequestActionsPanel requestId={request.id} currentStatus={request.status} onApprove={() => console.log('Approved')} onReject={() => console.log('Rejected')} onEscalate={() => console.log('Escalated')} />
-          <RequestTimeline request={adaptedRequest} />
+          <RequestTimeline request={adaptedRequestForTimeline as any} />
         </div>
       </div>
     </div>

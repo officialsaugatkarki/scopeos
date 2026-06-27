@@ -1,19 +1,17 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getProjectByToken, getScopeRequests, getChangeRequests, getPortalMessages } from '@/lib/database';
-import type { Project, ScopeRequest, ChangeRequest, PortalMessage } from '@/lib/supabase';
+import { getProjectByToken, getRequests, getPortalMessages } from '@/lib/database';
+import type { Project, Request, PortalMessage } from '@/lib/supabase';
 
 interface PortalContextType {
   project: Project | null;
   token: string;
   isLoading: boolean;
   error: string | null;
-  requests: ScopeRequest[];
-  changeRequests: ChangeRequest[];
+  requests: Request[];
   messages: PortalMessage[];
   refreshRequests: () => Promise<void>;
-  refreshChangeRequests: () => Promise<void>;
   refreshMessages: () => Promise<void>;
   refreshAll: () => Promise<void>;
 }
@@ -35,8 +33,7 @@ export function PortalProvider({ token, children }: PortalProviderProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [requests, setRequests] = useState<ScopeRequest[]>([]);
-  const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
   const [messages, setMessages] = useState<PortalMessage[]>([]);
 
   const loadProject = useCallback(async () => {
@@ -50,13 +47,11 @@ export function PortalProvider({ token, children }: PortalProviderProps) {
       setProject(proj);
 
       // Load all related data in parallel
-      const [reqs, crs, msgs] = await Promise.all([
-        getScopeRequests(proj.id),
-        getChangeRequests(proj.id),
+      const [reqs, msgs] = await Promise.all([
+        getRequests(proj.id),
         getPortalMessages(proj.id),
       ]);
       setRequests(reqs);
-      setChangeRequests(crs);
       setMessages(msgs);
     } catch (e) {
       console.error('Portal load error:', e);
@@ -72,14 +67,8 @@ export function PortalProvider({ token, children }: PortalProviderProps) {
 
   const refreshRequests = useCallback(async () => {
     if (!project) return;
-    const reqs = await getScopeRequests(project.id);
+    const reqs = await getRequests(project.id);
     setRequests(reqs);
-  }, [project]);
-
-  const refreshChangeRequests = useCallback(async () => {
-    if (!project) return;
-    const crs = await getChangeRequests(project.id);
-    setChangeRequests(crs);
   }, [project]);
 
   const refreshMessages = useCallback(async () => {
@@ -89,8 +78,8 @@ export function PortalProvider({ token, children }: PortalProviderProps) {
   }, [project]);
 
   const refreshAll = useCallback(async () => {
-    await Promise.all([refreshRequests(), refreshChangeRequests(), refreshMessages()]);
-  }, [refreshRequests, refreshChangeRequests, refreshMessages]);
+    await Promise.all([refreshRequests(), refreshMessages()]);
+  }, [refreshRequests, refreshMessages]);
 
   return (
     <PortalContext.Provider value={{
@@ -99,10 +88,8 @@ export function PortalProvider({ token, children }: PortalProviderProps) {
       isLoading,
       error,
       requests,
-      changeRequests,
       messages,
       refreshRequests,
-      refreshChangeRequests,
       refreshMessages,
       refreshAll,
     }}>

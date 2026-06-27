@@ -7,18 +7,18 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AILoadingState } from '@/components/ai-loading-state';
 import { AIAnalysisResult } from '@/components/ai-analysis-result';
-import { getScopeRequests } from '@/lib/database';
-import type { ScopeRequest } from '@/lib/supabase';
+import { getRequests } from '@/lib/database';
+import type { Request } from '@/lib/supabase';
 
 export default function AIAnalysisDemo() {
   const [showLoading, setShowLoading] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string>('');
-  const [requests, setRequests] = useState<ScopeRequest[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await getScopeRequests();
+      const data = await getRequests();
       setRequests(data);
       if (data.length > 0) {
         setSelectedRequestId(data[0].id);
@@ -43,7 +43,7 @@ export default function AIAnalysisDemo() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div>
         <h1 className="text-4xl font-bold text-foreground mb-2">AI Analysis Engine Demo</h1>
-        <p className="text-muted-foreground">See how ScopeGuard AI analyzes scope requests in real-time</p>
+        <p className="text-muted-foreground">See how ScopeOS analyzes scope requests in real-time</p>
       </div>
 
       <Tabs defaultValue="demo" className="w-full">
@@ -71,8 +71,8 @@ export default function AIAnalysisDemo() {
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <p className="font-medium text-foreground text-sm">{req.title}</p>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{req.description}</p>
+                  <p className="font-medium text-foreground text-sm line-clamp-1">{req.message.split('\n')[0]}</p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{req.message}</p>
                 </button>
               ))}
             </div>
@@ -83,19 +83,12 @@ export default function AIAnalysisDemo() {
             <Card className="p-6 bg-muted/50">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground">{selectedRequest.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{selectedRequest.description}</p>
+                  <h3 className="text-lg font-semibold text-foreground line-clamp-1">{selectedRequest.message.split('\n')[0]}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{selectedRequest.message}</p>
                 </div>
-                {selectedRequest.ai_analysis && (
-                  <Badge className="bg-primary">{selectedRequest.ai_analysis.confidence}%</Badge>
+                {selectedRequest.ai_decision && (
+                  <Badge className="bg-primary">{Math.round(selectedRequest.confidence_score || 0)}%</Badge>
                 )}
-              </div>
-              <div className="pt-4 border-t">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                  From
-                </p>
-                <p className="text-sm text-foreground font-medium">{selectedRequest.client_name}</p>
-                <p className="text-sm text-muted-foreground">{selectedRequest.client_email}</p>
               </div>
             </Card>
           )}
@@ -104,7 +97,7 @@ export default function AIAnalysisDemo() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-foreground">AI Analysis</h2>
-              {!showLoading && selectedRequest?.ai_analysis && (
+              {!showLoading && selectedRequest?.ai_decision && (
                 <Button onClick={handleAnalyzeClick} variant="outline" size="sm">
                   Re-analyze
                 </Button>
@@ -113,8 +106,15 @@ export default function AIAnalysisDemo() {
 
             {showLoading ? (
               <AILoadingState />
-            ) : selectedRequest?.ai_analysis ? (
-              <AIAnalysisResult analysis={selectedRequest.ai_analysis} />
+            ) : selectedRequest?.ai_decision ? (
+              <AIAnalysisResult analysis={{
+                decision: selectedRequest.ai_decision as any,
+                confidence: selectedRequest.confidence_score,
+                reasoning: [selectedRequest.reasoning],
+                costImpact: selectedRequest.estimated_impact,
+                estimatedHours: selectedRequest.estimated_impact,
+                suggestedAction: 'CREATE_TASK'
+              }} />
             ) : (
               <Card className="p-12 text-center">
                 <p className="text-muted-foreground mb-4">Click a request above to view its AI analysis</p>
@@ -131,27 +131,34 @@ export default function AIAnalysisDemo() {
               <Card key={request.id} className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-foreground">{request.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{request.description}</p>
+                    <h3 className="text-lg font-semibold text-foreground line-clamp-1">{request.message.split('\n')[0]}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{request.message}</p>
                   </div>
-                  {request.ai_analysis && (
+                  {request.ai_decision && (
                     <Badge
                       className={
-                        request.ai_analysis.decision === 'in-scope'
+                        request.ai_decision === 'in-scope'
                           ? 'bg-emerald-500'
-                          : request.ai_analysis.decision === 'out-of-scope'
+                          : request.ai_decision === 'out-of-scope'
                           ? 'bg-amber-500'
                           : 'bg-blue-500'
                       }
                     >
-                      {request.ai_analysis.confidence}%
+                      {Math.round(request.confidence_score || 0)}%
                     </Badge>
                   )}
                 </div>
 
-                {request.ai_analysis && (
+                {request.ai_decision && (
                   <div className="space-y-4 mt-6 pt-6 border-t">
-                    <AIAnalysisResult analysis={request.ai_analysis} />
+                    <AIAnalysisResult analysis={{
+                      decision: request.ai_decision as any,
+                      confidence: request.confidence_score,
+                      reasoning: [request.reasoning],
+                      costImpact: request.estimated_impact,
+                      estimatedHours: request.estimated_impact,
+                      suggestedAction: 'CREATE_TASK'
+                    }} />
                   </div>
                 )}
               </Card>

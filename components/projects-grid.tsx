@@ -6,18 +6,26 @@ import { Badge } from '@/components/ui/badge';
 import { FolderOpen, ArrowRight, Plus, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { getProjects } from '@/lib/database';
+import { getProjects, getRequests } from '@/lib/database';
 import { getCurrentUserId } from '@/lib/auth';
-import type { Project } from '@/lib/supabase';
+import type { Project, Request } from '@/lib/supabase';
 
 export function ProjectsGrid() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       const userId = await getCurrentUserId();
-      if (userId) { const data = await getProjects(userId); setProjects(data); }
+      if (userId) { 
+        const [projData, reqData] = await Promise.all([
+          getProjects(userId),
+          getRequests()
+        ]);
+        setProjects(projData);
+        setRequests(reqData);
+      }
       setIsLoading(false);
     };
     loadData();
@@ -25,84 +33,95 @@ export function ProjectsGrid() {
 
   if (isLoading) {
     return (
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-white">Your Projects</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="glass-card rounded-xl p-6 animate-pulse">
-              <div className="h-10 w-10 bg-white/[0.04] rounded-lg mb-4"></div>
-              <div className="h-4 bg-white/[0.04] rounded w-2/3 mb-2"></div>
-              <div className="h-3 bg-white/[0.04] rounded w-full mb-4"></div>
-            </Card>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[1, 2].map((i) => (
+          <Card key={i} className="bg-white border border-[#E2E8F4] rounded-2xl p-6 animate-pulse shadow-sm">
+            <div className="h-10 w-10 bg-slate-100 rounded-xl mb-4"></div>
+            <div className="h-4 bg-slate-100 rounded w-2/3 mb-2"></div>
+            <div className="h-3 bg-slate-100 rounded w-full mb-4"></div>
+          </Card>
+        ))}
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-white">Your Projects</h2>
+      <div className="flex items-center justify-between mb-5">
+        {/* Intentionally left empty as the parent page provides the header */}
+        <div></div>
         <Link href="/dashboard/projects/new">
-          <Button className="btn-gradient text-white border-0 flex items-center gap-2 h-9 rounded-xl">
-            <Plus size={18} /> New Project
+          <Button className="bg-[#2563EB] hover:bg-[#1A56DB] text-white border-0 flex items-center gap-2 h-9 rounded-full shadow-sm shadow-blue-500/20 px-4 text-xs font-semibold transition-all">
+            <Plus size={16} /> New Project
           </Button>
         </Link>
       </div>
 
       {projects.length === 0 ? (
-        <Card className="glass-card rounded-xl p-12 text-center">
-          <FolderOpen className="w-12 h-12 text-white/20 mx-auto mb-4" />
-          <p className="text-white/40 mb-4">No projects yet</p>
+        <Card className="bg-white border border-[#E2E8F4] rounded-2xl p-12 text-center shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4">
+            <FolderOpen className="w-6 h-6 text-[#94A3B8]" />
+          </div>
+          <p className="text-[#64748B] font-medium mb-5">No projects yet</p>
           <Link href="/dashboard/projects/new">
-            <Button className="btn-gradient text-white border-0 rounded-xl">Create Your First Project</Button>
+            <Button className="bg-[#2563EB] hover:bg-[#1A56DB] text-white border-0 rounded-full shadow-sm font-semibold px-6">
+              Create First Project
+            </Button>
           </Link>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => (
-            <Card key={project.id} className="glass-card rounded-xl hover:border-white/10 transition-all cursor-pointer glow-border-hover group">
-              <Link href={`/dashboard/projects/${project.id}`}>
-                <div className="p-6 flex flex-col h-full">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                      <FolderOpen className="text-blue-400" size={20} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {projects.map((project) => {
+            const projectRequests = requests.filter(r => r.project_id === project.id);
+            const totalRequests = projectRequests.length;
+            const changeRequests = projectRequests.filter(r => r.ai_decision === 'out-of-scope').length;
+            const pendingApprovals = projectRequests.filter(r => r.status === 'pending' || r.status === 'analyzed').length;
+
+            return (
+            <Card key={project.id} className="bg-white border border-[#E2E8F4] rounded-2xl hover:border-blue-200 transition-all cursor-pointer hover:shadow-md group flex flex-col h-full overflow-hidden">
+              <Link href={`/dashboard/projects/${project.id}`} className="flex flex-col h-full">
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex items-start justify-between mb-5">
+                    <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                      <FolderOpen className="text-[#2563EB]" size={20} />
                     </div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       {project.portal_enabled && (
-                        <Badge className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-1.5 py-0.5">
-                          <Globe className="w-3 h-3" />
+                        <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+                          <Globe className="w-3 h-3 mr-1 inline-block" /> Portal
                         </Badge>
                       )}
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        project.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : project.status === 'completed' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      <Badge className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${
+                        project.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                        : project.status === 'completed' ? 'bg-blue-50 text-[#2563EB] border border-blue-100'
+                        : 'bg-amber-50 text-amber-600 border border-amber-100'
                       }`}>
-                        {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-                      </span>
+                        {project.status}
+                      </Badge>
                     </div>
                   </div>
 
-                  <h3 className="font-semibold text-white mb-1">{project.name}</h3>
-                  <p className="text-xs text-white/40 mb-4 flex-1">{project.client_name}</p>
+                  <h3 className="font-bold text-[#0D1526] text-lg mb-1 group-hover:text-[#2563EB] transition-colors">{project.name}</h3>
+                  <p className="text-sm font-medium text-[#64748B] mb-6 flex-1">{project.client_name}</p>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
-                    <div className="text-xs text-white/30">
-                      <span className="font-semibold text-white/60">{project.request_count}</span> requests
+                  <div className="grid grid-cols-3 gap-2 pt-5 border-t border-[#E2E8F4]">
+                    <div className="flex flex-col">
+                      <span className="text-xl font-black text-[#0D1526]">{totalRequests}</span>
+                      <span className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">Reqs</span>
                     </div>
-                    <div className="text-xs text-white/30">
-                      <span className="font-semibold text-white/60">{project.task_count}</span> tasks
+                    <div className="flex flex-col">
+                      <span className="text-xl font-black text-[#2563EB]">{changeRequests}</span>
+                      <span className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">Changes</span>
                     </div>
-                    <ArrowRight size={16} className="text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="flex flex-col">
+                      <span className="text-xl font-black text-amber-500">{pendingApprovals}</span>
+                      <span className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">Pending</span>
+                    </div>
                   </div>
                 </div>
               </Link>
             </Card>
-          ))}
+          )})}
         </div>
       )}
     </div>

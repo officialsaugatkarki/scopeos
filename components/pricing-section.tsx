@@ -1,172 +1,90 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Check } from 'lucide-react'
-import { useRef, useEffect, useState } from 'react'
 
 export default function PricingSection() {
-  const [isVisible, setIsVisible] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-    if (ref.current) {
-      observer.observe(ref.current)
-    }
-    return () => observer.disconnect()
-  }, [])
-
   const plans = [
     {
       name: 'Starter',
-      price: '$99',
-      period: '/month',
-      description: 'Perfect for growing agencies',
-      features: [
-        '3 active projects',
-        '50 requests/month',
-        'Email + Portal intake',
-        'Basic integrations',
-        'Email support',
-      ],
-      cta: 'Start Free Trial',
-      popular: false,
+      price: '$49',
+      description: 'Perfect for small agencies tracking 1-3 active projects.',
+      features: ['Up to 3 Active Projects', 'Basic AI Analysis', 'Standard Client Portal', 'Email Support'],
+      featured: false,
     },
     {
-      name: 'Growth',
-      price: '$299',
-      period: '/month',
-      description: 'Most popular choice',
-      features: [
-        '10 active projects',
-        '200 requests/month',
-        'Everything in Starter',
-        'Linear/Notion sync',
-        'Priority support',
-        'Advanced analytics',
-      ],
-      cta: 'Start Free Trial',
-      popular: true,
+      name: 'Agency Pro',
+      price: '$149',
+      description: 'For growing agencies that need advanced AI protection.',
+      features: ['Up to 15 Active Projects', 'Advanced AI Context', 'Custom Branding', 'Slack Integration', 'Priority Support'],
+      featured: true,
     },
     {
-      name: 'Agency',
-      price: '$599',
-      period: '/month',
-      description: 'Enterprise-scale protection',
-      features: [
-        '25 active projects',
-        'Unlimited requests',
-        'Everything in Growth',
-        'Custom AI training',
-        'Dedicated success manager',
-        'API access',
-      ],
-      cta: 'Contact Sales',
-      popular: false,
-    },
+      name: 'Enterprise',
+      price: 'Custom',
+      description: 'Unlimited volume and full organizational control.',
+      features: ['Unlimited Projects', 'Custom AI Training', 'SSO & Advanced Security', 'Dedicated Success Manager'],
+      featured: false,
+    }
   ]
 
   return (
-    <section id="pricing" ref={ref} className="py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <section id="pricing" className="py-24 relative overflow-hidden">
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 text-balance tracking-tight">
-            Simple, Transparent Pricing
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+            Simple, transparent pricing
           </h2>
-          <p className="text-lg text-white/40 max-w-2xl mx-auto text-balance">
-            Choose the plan that works for your agency. No hidden fees.
+          <p className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed">
+            Stop losing thousands to scope creep. ScopeOS pays for itself with the first change request.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-5">
-          {plans.map((plan, index) => (
+        <div className="grid md:grid-cols-3 gap-8 items-center max-w-5xl mx-auto">
+          {plans.map((plan, i) => (
             <div
-              key={index}
-              className={`transition-all duration-700 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
+              key={i}
+              className={`p-8 rounded-[2rem] relative transition-transform duration-300 ${plan.featured ? 'scale-105 z-10' : 'hover:-translate-y-1'}`}
+              style={{
+                background: plan.featured ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: plan.featured ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: plan.featured ? '0 24px 80px rgba(59, 130, 246, 0.15)' : '0 20px 40px rgba(0, 0, 0, 0.2)',
+              }}
             >
-              <div
-                className={`rounded-2xl p-8 h-full flex flex-col transition-all duration-300 ${
-                  plan.popular
-                    ? 'glass-card-strong border-blue-500/30 border glow-border relative md:scale-105'
-                    : 'glass-card hover:border-white/10'
+              {plan.featured && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full shadow-lg">
+                  Most Popular
+                </div>
+              )}
+              
+              <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+              <p className="text-white/50 text-sm mb-6 min-h-[40px]">{plan.description}</p>
+              <div className="mb-8">
+                <span className="text-4xl font-bold text-white">{plan.price}</span>
+                {plan.price !== 'Custom' && <span className="text-white/40 text-sm">/mo</span>}
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                {plan.features.map((f, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <Check className={`w-5 h-5 shrink-0 ${plan.featured ? 'text-blue-400' : 'text-white/40'}`} />
+                    <span className="text-white/80 text-sm">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              <button 
+                className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all ${
+                  plan.featured 
+                    ? 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg' 
+                    : 'bg-white/10 text-white hover:bg-white/20'
                 }`}
               >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white border-0 px-4 py-1 text-xs font-medium shadow-lg shadow-blue-500/20">
-                      Most Popular
-                    </Badge>
-                  </div>
-                )}
-
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {plan.name}
-                </h3>
-                <p className="text-white/40 text-sm mb-6">
-                  {plan.description}
-                </p>
-
-                {/* Price */}
-                <div className="mb-8">
-                  <span className="text-5xl font-bold text-white">
-                    {plan.price}
-                  </span>
-                  <span className="text-white/40 ml-2">
-                    {plan.period}
-                  </span>
-                </div>
-
-                {/* CTA */}
-                <Button
-                  className={`w-full mb-8 rounded-xl h-11 font-medium ${
-                    plan.popular
-                      ? 'btn-gradient text-white border-0'
-                      : 'bg-white/[0.04] border border-white/10 text-white hover:bg-white/[0.08]'
-                  }`}
-                  size="lg"
-                  onClick={() => {
-                    if (plan.cta === 'Contact Sales') {
-                      window.location.href = 'mailto:sales@scopeguard.ai?subject=Agency Plan Inquiry';
-                    } else {
-                      window.location.href = '/signup';
-                    }
-                  }}
-                >
-                  {plan.cta}
-                </Button>
-
-                {/* Features */}
-                <div className="space-y-4 flex-grow">
-                  {plan.features.map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check className="w-3 h-3 text-blue-400" />
-                      </div>
-                      <span className="text-white/50 text-sm">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                {plan.price === 'Custom' ? 'Contact Sales' : 'Start Free Trial'}
+              </button>
             </div>
           ))}
-        </div>
-
-        {/* FAQ Note */}
-        <div className="text-center mt-12">
-          <p className="text-white/40">
-            All plans include a <span className="font-semibold text-white/60">14-day free trial</span>. No credit card required.
-          </p>
         </div>
       </div>
     </section>

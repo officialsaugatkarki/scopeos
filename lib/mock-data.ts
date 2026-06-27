@@ -137,7 +137,7 @@ export const MOCK_PROJECTS: Project[] = [
     budget: 50000,
     spent: 32000,
     scopeBaseline: 'Homepage, About, Services, Blog, Contact pages - React frontend with WordPress backend',
-    portalUrl: 'https://portal.scopeguard.ai/projects/proj-1',
+    portalUrl: 'https://portal.scopeos.ai/projects/proj-1',
     scopeAnalytics: {
       totalRequests: 23,
       inScope: 18,
@@ -160,7 +160,7 @@ export const MOCK_PROJECTS: Project[] = [
     budget: 45000,
     spent: 48000,
     scopeBaseline: 'iOS/Android app MVP with offline sync, task creation/editing, notifications',
-    portalUrl: 'https://portal.scopeguard.ai/projects/proj-2',
+    portalUrl: 'https://portal.scopeos.ai/projects/proj-2',
     scopeAnalytics: {
       totalRequests: 31,
       inScope: 22,
@@ -182,7 +182,7 @@ export const MOCK_PROJECTS: Project[] = [
     budget: 25000,
     spent: 12000,
     scopeBaseline: 'Admin dashboard UI/UX refresh - new design system, improved navigation',
-    portalUrl: 'https://portal.scopeguard.ai/projects/proj-3',
+    portalUrl: 'https://portal.scopeos.ai/projects/proj-3',
     scopeAnalytics: {
       totalRequests: 12,
       inScope: 10,
@@ -314,7 +314,7 @@ export const MOCK_SCOPE_REQUESTS: ScopeRequest[] = [
       {
         timestamp: '2024-04-18T09:05:00Z',
         action: 'ai_analysis_complete',
-        actor: 'ScopeGuard AI',
+        actor: 'ScopeOS',
         details: 'Quick fix detected',
       },
     ],
@@ -366,7 +366,7 @@ export const MOCK_SCOPE_REQUESTS: ScopeRequest[] = [
       {
         timestamp: '2024-04-17T14:35:00Z',
         action: 'ai_analysis_complete',
-        actor: 'ScopeGuard AI',
+        actor: 'ScopeOS',
         details: 'Out-of-scope feature detected',
       },
     ],
@@ -414,7 +414,7 @@ export const MOCK_SCOPE_REQUESTS: ScopeRequest[] = [
       {
         timestamp: '2024-04-16T11:20:00Z',
         action: 'ai_analysis_complete',
-        actor: 'ScopeGuard AI',
+        actor: 'ScopeOS',
         details: 'Ambiguous request - needs clarification',
       },
     ],
@@ -459,7 +459,7 @@ export const MOCK_SCOPE_REQUESTS: ScopeRequest[] = [
       {
         timestamp: '2024-04-15T16:50:00Z',
         action: 'ai_analysis_complete',
-        actor: 'ScopeGuard AI',
+        actor: 'ScopeOS',
         details: 'Straightforward styling task',
       },
     ],

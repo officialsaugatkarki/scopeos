@@ -1,152 +1,111 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { AlertCircle, CheckCircle, FileText, Sparkles } from 'lucide-react'
-import { useRef, useEffect, useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useState } from 'react'
+import { Command } from 'lucide-react'
 
 export default function HeroSection() {
-  const [isVisible, setIsVisible] = useState(false)
-  const ref = useRef(null)
+  const [contentVisible, setContentVisible] = useState(false)
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-    if (ref.current) {
-      observer.observe(ref.current)
-    }
-    return () => observer.disconnect()
+    const timer = setTimeout(() => setContentVisible(true), 100)
+    return () => clearTimeout(timer)
   }, [])
 
   return (
-    <section ref={ref} className="relative pt-36 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Starburst Light Effect */}
-      <div className="absolute inset-0 light-burst" />
-      
-      {/* Radial gradient overlay */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] opacity-30"
-        style={{
-          background: 'radial-gradient(ellipse at center top, rgba(59,130,246,0.15) 0%, rgba(34,211,238,0.05) 30%, transparent 60%)',
-        }}
-      />
+  <section className="relative w-full h-[100svh] min-h-[850px] flex flex-col items-center justify-center overflow-hidden">
+    {/* ── Background Video ── */}
+    <div className="absolute inset-0 w-full h-full overflow-hidden">
+      <video
+        className="
+          absolute
+          inset-0
+          w-full
+          h-full
+          object-cover
+          object-center
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        {/* Hero Text */}
-        <div className="text-center mb-12">
-          {/* Floating Pill Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-white/[0.08] text-sm text-white/70 mb-8 animate-float">
-            <Sparkles className="w-4 h-4 text-blue-400" />
-            <span>Scope protection using AI</span>
-          </div>
+          lg:inset-auto
+          lg:top-1/2
+          lg:left-1/2
+          lg:w-[110svh]
+          lg:h-[110svw]
+          lg:-translate-x-1/2
+          lg:-translate-y-1/2
+          lg:-rotate-90
+        "
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+      >
+        <source src="/assets/vid0.mp4" type="video/mp4" />
+      </video>
+    </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 text-balance leading-[1.1] tracking-tight">
-            Stop Losing Money
-            <br />
-            <span className="gradient-text">on Scope Creep</span>
+      {/* ── Subtle Overlay ── */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
+
+      {/* ── Hero Content ── */}
+      <div className="relative z-10 w-full h-full max-w-5xl mx-auto px-6">
+        
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center px-6">
+          {/* Main heading — Handwritten Font */}
+          <h1
+            className={`text-white leading-[1.15] tracking-wide max-w-4xl mx-auto mb-6 text-balance transition-all duration-1000 ${
+              contentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
+            style={{
+              fontFamily: 'var(--font-caveat), cursive',
+              fontSize: 'clamp(2.8rem, 5vw, 4.4rem)',
+              textShadow: '0 4px 30px rgba(0, 0, 0, 0.4)',
+              fontWeight: 400,
+            }}
+          >
+            Life is beautiful,<br className="hidden sm:block" />
+                Don’t waste it on unpaid changes.
           </h1>
-          <p className="text-lg sm:text-xl text-white/50 max-w-3xl mx-auto mb-10 text-balance leading-relaxed">
-            AI-powered scope protection for dev agencies. Turn client chaos into clear, billable tasks—automatically.
+        </div>
+
+        <div className="absolute inset-x-0 bottom-12 text-center px-6">
+          {/* Subheading */}
+          <p
+            className={`text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed text-balance transition-all duration-1000 delay-200 ${
+              contentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+            style={{
+              color: 'rgba(255, 255, 255, 0.95)',
+              textShadow: '0 2px 16px rgba(0, 0, 0, 0.4)',
+              fontWeight: 400,
+            }}
+          >
+            The AI decision layer that protects
+            <br className="hidden sm:block" />
+            every client request before development begins.
           </p>
-          
-          {/* CTA — Email Input Style */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center max-w-md mx-auto">
-            <div className="relative flex-1 w-full">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <input
-                type="email"
-                placeholder="Your Email Address"
-                className="w-full pl-12 pr-4 py-3.5 rounded-full dark-input text-sm"
-              />
-            </div>
-            <Button
-              size="lg"
-              className="btn-gradient text-white font-semibold px-8 rounded-full border-0 whitespace-nowrap"
-              onClick={() => window.location.href = '/signup'}
+
+          {/* CTA Buttons */}
+          <div
+            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-300 ${
+              contentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            } mb-12`}
+          >
+            <a
+              href="/signup"
+              className="bg-white text-black px-8 py-3.5 rounded-full font-medium text-[15px] transition-all hover:bg-gray-100 hover:shadow-lg w-full sm:w-auto"
             >
               Start Free Trial
-            </Button>
+            </a>
+            <a
+              href="mailto:demo@scopeos.ai"
+              className="flex items-center justify-center gap-2 bg-black/40 backdrop-blur-md text-white px-8 py-3.5 rounded-full font-medium text-[15px] border border-white/20 transition-all hover:bg-black/60 w-full sm:w-auto"
+            >
+              Book a Demo
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            </a>
           </div>
         </div>
-
-        {/* Dashboard Mockup — Dark Glass */}
-        <div className={`mt-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="relative rounded-2xl overflow-hidden glass-card-strong border border-white/[0.06] glow-border">
-            {/* Mockup Header */}
-            <div className="border-b border-white/[0.06] px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold text-xs">
-                  SG
-                </div>
-                <span className="text-white/60 text-sm font-medium">ScopeGuard</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-white/10" />
-                  <div className="w-3 h-3 rounded-full bg-white/10" />
-                  <div className="w-3 h-3 rounded-full bg-white/10" />
-                </div>
-              </div>
-            </div>
-
-            {/* Mockup Content */}
-            <div className="p-6">
-              {/* Stats Row */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                {[
-                  { label: 'Active Requests', value: '42', color: 'from-blue-500/20 to-blue-600/5' },
-                  { label: 'In Review', value: '21', color: 'from-cyan-500/20 to-cyan-600/5' },
-                  { label: 'Completed', value: '68', color: 'from-emerald-500/20 to-emerald-600/5' },
-                ].map((stat) => (
-                  <div key={stat.label} className={`rounded-xl bg-gradient-to-br ${stat.color} border border-white/[0.06] p-4`}>
-                    <p className="text-white/40 text-xs mb-1">{stat.label}</p>
-                    <p className="text-white text-2xl font-bold">{stat.value}</p>
-                    <p className="text-blue-400 text-xs mt-1">View detail →</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chart & Activity Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Chart Placeholder */}
-                <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-5">
-                  <p className="text-white/60 text-sm font-medium mb-4">Tracking History</p>
-                  <div className="flex items-end gap-2 h-28">
-                    {[40, 65, 45, 80, 55, 70, 90, 60, 75, 85, 50, 95].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t-sm bg-gradient-to-t from-blue-500/60 to-blue-400/30" style={{ height: `${h}%` }} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Activity Placeholder */}
-                <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-5">
-                  <p className="text-white/60 text-sm font-medium mb-4">Recent Activities</p>
-                  <div className="space-y-3">
-                    {[
-                      { text: 'New request from Acme Corp', time: '2 min ago' },
-                      { text: 'Scope analysis completed', time: '1 hour ago' },
-                      { text: 'Change request approved', time: '3 hours ago' },
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                        <p className="text-white/50 text-xs">{item.text}</p>
-                        <p className="text-white/30 text-xs">{item.time}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </section>
   )

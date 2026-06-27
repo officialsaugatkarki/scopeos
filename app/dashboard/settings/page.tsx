@@ -310,7 +310,7 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">From Name</label>
-                    <Input placeholder="ScopeGuard Team" />
+                    <Input placeholder="ScopeOS Team" />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Reply-to Email</label>

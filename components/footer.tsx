@@ -1,50 +1,74 @@
+'use client'
+
+import Link from 'next/link'
 import Image from 'next/image'
 
 export default function Footer() {
+  const year = new Date().getFullYear()
+
   return (
-    <footer className="border-t border-white/[0.06] pt-16 pb-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2.5 mb-4">
-              <Image src="/logo.png" alt="ScopeGuard" width={32} height={32} className="rounded-lg" />
-              <span className="font-semibold text-white/90 text-sm">ScopeGuard</span>
-            </div>
-            <p className="text-sm text-white/30 leading-relaxed">
-              AI-powered scope management for dev agencies.
+    <footer className="border-t border-white/10 pt-16 pb-8 relative z-10" style={{ background: 'rgba(255, 255, 255, 0.02)' }}>
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-16">
+          <div className="col-span-2 lg:col-span-2">
+            <Link href="/" className="flex items-center gap-2 mb-6">
+              <Image src="/assets/logo.png" alt="ScopeOS" width={32} height={32} className="rounded-lg object-contain" />
+              <span className="font-bold text-white text-xl tracking-tight">ScopeOS</span>
+            </Link>
+            <p className="text-white/50 text-sm max-w-xs leading-relaxed mb-6">
+              AI-powered scope management tool for development agencies. Protect your margins, instantly.
             </p>
+            <div className="flex gap-4">
+              <a href="#" className="text-white/40 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+                </svg>
+              </a>
+              <a href="#" className="text-white/40 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                </svg>
+              </a>
+            </div>
           </div>
+          
           <div>
-            <h4 className="font-semibold text-white/80 text-sm mb-4">Product</h4>
-            <ul className="space-y-2.5">
-              <li><a href="#features" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Features</a></li>
-              <li><a href="#pricing" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Pricing</a></li>
-              <li><a href="#how-it-works" className="text-sm text-white/30 hover:text-blue-400 transition-colors">How It Works</a></li>
-              <li><a href="#testimonials" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Testimonials</a></li>
+            <h4 className="font-semibold text-white mb-4">Product</h4>
+            <ul className="space-y-3">
+              <li><a href="#features" className="text-white/50 hover:text-white text-sm transition-colors">Features</a></li>
+              <li><a href="#pricing" className="text-white/50 hover:text-white text-sm transition-colors">Pricing</a></li>
+              <li><a href="#how-it-works" className="text-white/50 hover:text-white text-sm transition-colors">How it Works</a></li>
+              <li><Link href="/demo" className="text-white/50 hover:text-white text-sm transition-colors">Demos</Link></li>
             </ul>
           </div>
+          
           <div>
-            <h4 className="font-semibold text-white/80 text-sm mb-4">Company</h4>
-            <ul className="space-y-2.5">
-              <li><a href="/login" className="text-sm text-white/30 hover:text-blue-400 transition-colors">About</a></li>
-              <li><a href="#testimonials" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Blog</a></li>
-              <li><a href="/signup" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Get Started</a></li>
-              <li><a href="mailto:hello@scopeguard.ai" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Contact</a></li>
+            <h4 className="font-semibold text-white mb-4">Company</h4>
+            <ul className="space-y-3">
+              <li><a href="#" className="text-white/50 hover:text-white text-sm transition-colors">About</a></li>
+              <li><a href="#" className="text-white/50 hover:text-white text-sm transition-colors">Blog</a></li>
+              <li><a href="#" className="text-white/50 hover:text-white text-sm transition-colors">Careers</a></li>
+              <li><a href="#" className="text-white/50 hover:text-white text-sm transition-colors">Contact</a></li>
             </ul>
           </div>
+          
           <div>
-            <h4 className="font-semibold text-white/80 text-sm mb-4">Legal</h4>
-            <ul className="space-y-2.5">
-              <li><a href="#privacy" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Privacy</a></li>
-              <li><a href="#terms" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Terms</a></li>
-              <li><a href="#security" className="text-sm text-white/30 hover:text-blue-400 transition-colors">Security</a></li>
+            <h4 className="font-semibold text-white mb-4">Legal</h4>
+            <ul className="space-y-3">
+              <li><a href="#" className="text-white/50 hover:text-white text-sm transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="text-white/50 hover:text-white text-sm transition-colors">Terms of Service</a></li>
             </ul>
           </div>
         </div>
-        <div className="border-t border-white/[0.06] pt-6 text-center">
-          <p className="text-xs text-white/20">
-            &copy; {new Date().getFullYear()} ScopeGuard AI. All rights reserved.
+        
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-white/40 text-sm">
+            © {year} ScopeOS AI. All rights reserved.
           </p>
+          <div className="flex items-center gap-2 text-white/40 text-sm">
+            <div className="w-2 h-2 rounded-full bg-emerald-400" />
+            All systems operational
+          </div>
         </div>
       </div>
     </footer>

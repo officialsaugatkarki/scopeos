@@ -10,7 +10,7 @@ export default function DemoPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">ScopeGuard AI Demos</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-2">ScopeOS Demos</h1>
         <p className="text-muted-foreground">Explore realistic AI analysis flows and scope management features</p>
       </div>
 
@@ -21,7 +21,7 @@ export default function DemoPage() {
             <Badge className="bg-primary mb-4">Featured</Badge>
             <h2 className="text-2xl font-bold text-foreground mb-2">AI Analysis Engine Demo</h2>
             <p className="text-muted-foreground max-w-2xl">
-              See how ScopeGuard AI analyzes scope requests in real-time with realistic confidence levels, 
+              See how ScopeOS analyzes scope requests in real-time with realistic confidence levels, 
               reasoning explanations, and actionable recommendations.
             </p>
           </div>

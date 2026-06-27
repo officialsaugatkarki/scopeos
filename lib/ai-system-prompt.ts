@@ -1,4 +1,4 @@
-import type { Project, AgencyPricing, PortalMessage, ScopeRequest } from './supabase';
+import type { Project, AgencyPricing, PortalMessage, Request } from './supabase';
 
 /**
  * Builds a dynamic system prompt for the ScopeOS AI chat based on
@@ -8,7 +8,7 @@ export function buildSystemPrompt(params: {
   project: Project;
   agencyName: string;
   pricing: AgencyPricing | null;
-  recentRequests: ScopeRequest[];
+  recentRequests: Request[];
 }): string {
   const { project, agencyName, pricing, recentRequests } = params;
 
@@ -45,8 +45,9 @@ PROJECT CONTEXT:
     ? `
 RECENT SCOPE DECISIONS (last ${recentRequests.length}):
 ${recentRequests.slice(0, 10).map((r) => {
-  const decision = r.ai_analysis?.decision || 'pending';
-  return `- "${r.title}" → ${decision}`;
+  const decision = r.ai_decision || 'pending';
+  const title = r.message.split('\n')[0].substring(0, 50);
+  return `- "${title}" → ${decision}`;
 }).join('\n')}`
     : '';
 

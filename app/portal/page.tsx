@@ -84,7 +84,7 @@ export default function PortalPage() {
             <h3 className="font-semibold text-white mb-1">How it works</h3>
             <ul className="text-sm text-white/40 space-y-1">
               <li>✓ Submit your change request with detailed description</li>
-              <li>✓ ScopeGuard AI analyzes if it&apos;s in or out of scope</li>
+              <li>✓ ScopeOS analyzes if it&apos;s in or out of scope</li>
               <li>✓ Get immediate feedback or answer clarification questions</li>
               <li>✓ Project manager reviews the decision</li>
             </ul>

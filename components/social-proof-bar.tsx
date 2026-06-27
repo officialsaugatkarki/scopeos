@@ -10,17 +10,25 @@ export default function SocialProofBar() {
   ]
 
   return (
-    <section className="py-12 px-4 sm:px-6 lg:px-8 border-y border-white/[0.04]">
-      <div className="max-w-6xl mx-auto text-center">
-        <p className="text-xs sm:text-sm text-white/30 mb-8 tracking-widest uppercase">
-          Trusted by top brands around the world
+    <section className="lp-section-white py-14 px-4 sm:px-6 lg:px-8 border-b border-[#E2E8F4]">
+      <div className="max-w-5xl mx-auto text-center">
+        <p className="text-xs font-semibold tracking-[0.18em] uppercase text-[#94A3B8] mb-8">
+          Trusted by leading development agencies
         </p>
-        
-        <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-12">
+        <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-14">
           {agencies.map((agency) => (
-            <div key={agency.name} className="flex items-center gap-2 text-white/25 hover:text-white/40 transition-colors">
-              <span className="text-lg">{agency.icon}</span>
-              <span className="font-semibold text-sm sm:text-base tracking-wide">{agency.name}</span>
+            <div
+              key={agency.name}
+              className="flex items-center gap-2 transition-all duration-200 select-none group cursor-default"
+              style={{ color: '#C2D0E6' }}
+            >
+              <span className="text-sm group-hover:text-[#2563EB] transition-colors">{agency.icon}</span>
+              <span
+                className="font-bold text-sm tracking-widest uppercase group-hover:text-[#1E3058] transition-colors"
+                style={{ letterSpacing: '0.12em' }}
+              >
+                {agency.name}
+              </span>
             </div>
           ))}
         </div>

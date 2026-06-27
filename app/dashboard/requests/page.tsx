@@ -3,20 +3,34 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getScopeRequests, getProjects } from '@/lib/database';
+import { getRequests, getProjects } from '@/lib/database';
 import { getCurrentUserId } from '@/lib/auth';
-import type { ScopeRequest, Project } from '@/lib/supabase';
-import ScopeDecisionBadge from '@/components/scope-decision-badge';
-import { useRouter } from 'next/navigation';
-import { Clock, CheckCircle2, AlertCircle, HelpCircle } from 'lucide-react';
+import type { Request, Project } from '@/lib/supabase';
+import { Clock, CheckCircle2, AlertCircle, HelpCircle, TrendingUp } from 'lucide-react';
+
+const decisionLabel: Record<string, string> = {
+  'in-scope': 'In Scope',
+  'out-of-scope': 'Out of Scope',
+  'needs-info': 'Needs Info',
+};
+
+const decisionColor: Record<string, string> = {
+  'in-scope': 'bg-emerald-50 text-emerald-600 border-emerald-200',
+  'out-of-scope': 'bg-red-50 text-red-600 border-red-200',
+  'needs-info': 'bg-amber-50 text-amber-600 border-amber-200',
+};
+
+const statusBorderColor: Record<string, string> = {
+  'out-of-scope': '#ef4444',
+  'in-scope': '#10b981',
+  'needs-info': '#f59e0b',
+};
 
 export default function RequestsPage() {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  const [requests, setRequests] = useState<ScopeRequest[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -25,101 +39,141 @@ export default function RequestsPage() {
       setMounted(true);
       const userId = await getCurrentUserId();
       if (!userId) return;
-      const [reqs, projs] = await Promise.all([getScopeRequests(), getProjects(userId)]);
-      setRequests(reqs); setProjects(projs); setIsLoading(false);
+      const [reqs, projs] = await Promise.all([getRequests(), getProjects(userId)]);
+      setRequests(reqs);
+      setProjects(projs);
+      setIsLoading(false);
     };
     loadData();
   }, []);
 
   if (!mounted) return null;
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'submitted': case 'reviewing': return <Clock className="w-4 h-4 text-blue-400" />;
-      case 'clarification': return <HelpCircle className="w-4 h-4 text-amber-400" />;
-      case 'decision': case 'completed': return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
-      default: return <AlertCircle className="w-4 h-4 text-white/30" />;
-    }
-  };
+  const pendingCount = requests.filter(r => ['pending', 'analyzed'].includes(r.status)).length;
+  const clarificationCount = requests.filter(r => r.ai_decision === 'needs-info').length;
+  const decidedCount = requests.filter(r => ['in-scope', 'out-of-scope'].includes(r.ai_decision)).length;
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = { submitted: 'Submitted', reviewing: 'Reviewing', clarification: 'Clarification', decision: 'Decision', completed: 'Completed' };
-    return labels[status] || status;
-  };
-
-  const filteredRequests = requests.filter((req) => {
+  const filteredRequests = requests.filter(req => {
     if (activeTab === 'all') return true;
-    if (activeTab === 'pending') return ['submitted', 'reviewing'].includes(req.status);
-    if (activeTab === 'clarification') return req.status === 'clarification';
-    if (activeTab === 'decided') return ['decision', 'completed'].includes(req.status);
+    if (activeTab === 'pending') return ['pending', 'analyzed'].includes(req.status);
+    if (activeTab === 'clarification') return req.ai_decision === 'needs-info';
+    if (activeTab === 'decided') return ['in-scope', 'out-of-scope'].includes(req.ai_decision);
     return true;
   });
 
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Scope Requests</h1>
-          <p className="text-white/40">Loading...</p>
+          <h1 className="text-2xl font-bold text-[#0D1526] mb-2 tracking-tight">Scope Requests</h1>
+          <p className="text-[#64748B] font-medium">Loading...</p>
         </div>
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (<Card key={i} className="glass-card rounded-xl p-4 animate-pulse"><div className="h-4 bg-white/[0.04] rounded w-1/3 mb-2"></div><div className="h-3 bg-white/[0.04] rounded w-1/2"></div></Card>))}
+          {[1, 2, 3].map(i => (
+            <Card key={i} className="bg-white border border-[#E2E8F4] rounded-2xl p-6 shadow-sm animate-pulse">
+              <div className="h-4 bg-slate-100 rounded w-1/3 mb-3"></div>
+              <div className="h-3 bg-slate-100 rounded w-1/2"></div>
+            </Card>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Scope Requests</h1>
-        <p className="text-white/40">Review and manage client requests with AI-powered scope analysis</p>
+        <h1 className="text-2xl font-bold text-[#0D1526] mb-1 tracking-tight">Scope Requests</h1>
+        <p className="text-[#64748B] font-medium">All client requests analyzed by ScopeOS AI</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white/[0.03] border border-white/[0.06] rounded-xl">
-          <TabsTrigger value="all">All Requests</TabsTrigger>
-          <TabsTrigger value="pending">Pending ({requests.filter((r) => ['submitted', 'reviewing'].includes(r.status)).length})</TabsTrigger>
-          <TabsTrigger value="clarification">Clarification ({requests.filter((r) => r.status === 'clarification').length})</TabsTrigger>
-          <TabsTrigger value="decided">Decided ({requests.filter((r) => ['decision', 'completed'].includes(r.status)).length})</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 bg-slate-100/50 p-1 rounded-xl shadow-inner mb-6 border border-slate-200">
+          <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#2563EB] font-semibold text-[#64748B]">All ({requests.length})</TabsTrigger>
+          <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#2563EB] font-semibold text-[#64748B]">Pending ({pendingCount})</TabsTrigger>
+          <TabsTrigger value="clarification" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#2563EB] font-semibold text-[#64748B]">Clarification ({clarificationCount})</TabsTrigger>
+          <TabsTrigger value="decided" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#2563EB] font-semibold text-[#64748B]">Decided ({decidedCount})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="space-y-4 mt-6">
+        <TabsContent value={activeTab} className="space-y-4">
           {filteredRequests.length === 0 ? (
-            <Card className="glass-card rounded-xl p-12 text-center">
-              <p className="text-white/30 mb-4">No requests found</p>
-              <Button variant="outline" className="border-white/[0.06] bg-white/[0.02] text-white/60">Create New Request</Button>
+            <Card className="bg-white border border-[#E2E8F4] rounded-2xl p-14 text-center shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-6 h-6 text-[#2563EB]" />
+              </div>
+              <p className="text-[#0D1526] font-semibold mb-1">No requests here yet</p>
+              <p className="text-[#64748B] text-sm">
+                {activeTab === 'all'
+                  ? 'Requests will appear once clients message through the portal'
+                  : 'No requests match this filter'}
+              </p>
             </Card>
           ) : (
-            <div className="space-y-4">
-              {filteredRequests.map((request) => {
-                const project = projects.find((p) => p.id === request.project_id);
-                const decision = request.ai_analysis?.decision;
+            <div className="space-y-3">
+              {filteredRequests.map(request => {
+                const project = projects.find(p => p.id === request.project_id);
+                const decision = request.ai_decision;
+                const borderColor = statusBorderColor[decision] || '#E2E8F4';
                 return (
-                  <Card key={request.id}
-                    className="glass-card rounded-xl p-4 hover:border-white/10 transition-all cursor-pointer border-l-4"
-                    onClick={() => router.push(`/dashboard/requests/${request.id}`)}
-                    style={{ borderLeftColor: request.status === 'clarification' ? '#f59e0b' : request.status === 'decision' || request.status === 'completed' ? '#10b981' : '#3b82f6' }}>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="col-span-1 md:col-span-2">
-                        <div className="flex items-start gap-3">
-                          {getStatusIcon(request.status)}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-white truncate">{request.title}</h3>
-                            <p className="text-sm text-white/40">{project?.name} • From {request.client_name}</p>
-                            <p className="text-xs text-white/30 mt-1">{formatDate(request.submitted_at)}</p>
+                  <Card
+                    key={request.id}
+                    className="bg-white border border-[#E2E8F4] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border-l-4 group cursor-pointer hover:border-r-blue-200 hover:border-y-blue-200"
+                    style={{ borderLeftColor: borderColor }}
+                    onClick={() => window.location.href = `/dashboard/requests/${request.id}`}
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                      {/* Message */}
+                      <div className="md:col-span-2 flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-0.5">
+                          {decision === 'needs-info'
+                            ? <HelpCircle className="w-5 h-5 text-amber-500" />
+                            : decision === 'out-of-scope'
+                            ? <AlertCircle className="w-5 h-5 text-red-500" />
+                            : decision === 'in-scope'
+                            ? <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                            : <Clock className="w-5 h-5 text-blue-500" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-[#0D1526] group-hover:text-[#2563EB] text-base leading-snug transition-colors">{request.message}</p>
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] bg-slate-100 px-2 py-0.5 rounded-md">
+                              {project ? project.name : 'Unknown project'}
+                            </span>
+                            <span className="text-xs text-[#94A3B8]">•</span>
+                            <span className="text-xs font-medium text-[#64748B]">{request.client_id}</span>
+                            <span className="text-xs text-[#94A3B8]">•</span>
+                            <span className="text-xs font-medium text-[#94A3B8]">{formatDate(request.created_at)}</span>
                           </div>
+                          {request.reasoning && (
+                            <p className="text-sm text-[#64748B] mt-2 italic line-clamp-2 bg-slate-50 p-2 rounded-lg border border-slate-100">"{request.reasoning}"</p>
+                          )}
                         </div>
                       </div>
-                      <div className="col-span-1">
-                        <p className="text-xs text-white/30 mb-1">Status</p>
-                        <Badge variant="outline" className="text-xs border-white/10 text-white/60">{getStatusLabel(request.status)}</Badge>
-                      </div>
-                      <div className="col-span-1">
-                        <p className="text-xs text-white/30 mb-1">AI Decision</p>
-                        {decision ? <ScopeDecisionBadge decision={decision} size="sm" /> : <Badge className="text-xs bg-white/[0.04] text-white/40 border border-white/[0.06]">Pending</Badge>}
+
+                      {/* Meta */}
+                      <div className="flex md:flex-col gap-2 md:items-end items-center flex-wrap">
+                        {decision ? (
+                          <Badge className={`text-[10px] uppercase tracking-wider font-bold border px-2.5 py-0.5 rounded-full ${decisionColor[decision] || 'bg-slate-100 text-[#64748B] border-slate-200'}`}>
+                            {decisionLabel[decision] || decision}
+                          </Badge>
+                        ) : (
+                          <Badge className="text-[10px] uppercase tracking-wider font-bold bg-slate-100 text-[#64748B] border border-slate-200 px-2.5 py-0.5 rounded-full">Pending</Badge>
+                        )}
+                        {request.estimated_impact && (
+                          <span className="text-xs font-semibold text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
+                            {request.estimated_impact}
+                          </span>
+                        )}
+                        <span className={`text-[10px] uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full border ${
+                          request.status === 'pending'
+                            ? 'bg-blue-50 text-[#2563EB] border-blue-200'
+                            : 'bg-slate-100 text-[#64748B] border-slate-200'
+                        }`}>
+                          {request.status}
+                        </span>
                       </div>
                     </div>
                   </Card>

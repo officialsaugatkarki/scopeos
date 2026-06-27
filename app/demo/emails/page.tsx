@@ -17,7 +17,7 @@ export default function EmailsDemoPage() {
     agencyName: 'Creative Agency',
     pmName: 'Sarah Johnson',
     projectName: 'Website Redesign',
-    portalLink: 'https://portal.scopeguard.ai/projects/proj-1',
+    portalLink: 'https://portal.scopeos.ai/projects/proj-1',
     magicEmail: 'requests@agency.com',
     requestTitle: 'Add customer testimonials section',
     requestDescription: 'We want to add a section on the homepage showcasing customer testimonials with photos and ratings.',
@@ -31,7 +31,7 @@ export default function EmailsDemoPage() {
       'Star ratings visible next to each testimonial',
       'Works on mobile, tablet, and desktop'
     ],
-    approvalLink: 'https://portal.scopeguard.ai/approve-cr-001',
+    approvalLink: 'https://portal.scopeos.ai/approve-cr-001',
     calendarLink: 'https://calendly.com/agency/call',
     kickoffDate: 'January 15, 2024',
     launchDate: 'April 15, 2024',
@@ -90,7 +90,7 @@ export default function EmailsDemoPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
         <h1 className="text-3xl font-bold text-foreground mb-2">Email Templates Demo</h1>
-        <p className="text-muted-foreground">Browse and preview all email templates used in ScopeGuard</p>
+        <p className="text-muted-foreground">Browse and preview all email templates used in ScopeOS</p>
       </div>
 
       {viewMode === 'grid' ? (

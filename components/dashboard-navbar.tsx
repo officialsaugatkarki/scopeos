@@ -19,25 +19,46 @@ export function DashboardNavbar({ title = 'Dashboard' }: DashboardNavbarProps) {
   }, []);
 
   return (
-    <div className="h-16 bg-[#0A0F1C]/80 backdrop-blur-xl border-b border-white/[0.04] flex items-center justify-between px-6 sticky top-0 z-40">
+    <div
+      className="h-16 flex items-center justify-between px-6 sticky top-0 z-40"
+      style={{
+        background: 'rgba(255, 255, 255, 0.02)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+      }}
+    >
       {/* Left */}
       <div className="flex items-center gap-6 flex-1">
-        <h1 className="text-xl font-semibold text-white">{title}</h1>
-        <div className="hidden md:flex relative flex-1 max-w-xs">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-          <Input type="text" placeholder="Search..." className="pl-10 h-9 dark-input rounded-lg text-sm" />
+        <h1 className="text-xl font-bold text-white tracking-tight">{title}</h1>
+        <div className="hidden md:flex relative flex-1 max-w-sm ml-4">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+          <Input
+            type="text"
+            placeholder="Search projects, requests..."
+            className="pl-10 h-10 bg-white/5 border-white/10 hover:border-white/20 focus:border-blue-500 focus:bg-white/10 text-white placeholder:text-white/40 transition-all rounded-xl text-sm"
+          />
         </div>
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
         <NotificationCenter />
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-400/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-          <User size={16} />
-        </div>
-        <div className="text-sm hidden sm:block">
-          <p className="font-medium text-white/80">{user?.name || 'User'}</p>
-          <p className="text-white/30 text-xs">{user?.email || 'user@agency.com'}</p>
+        
+        <div className="h-8 w-px bg-white/10 hidden sm:block" />
+
+        <div className="flex items-center gap-3 cursor-pointer group">
+          <div className="text-right hidden sm:block">
+            <p className="font-semibold text-sm text-white leading-none mb-1 group-hover:text-blue-400 transition-colors">
+              {user?.name || 'User'}
+            </p>
+            <p className="text-white/50 text-xs leading-none">
+              {user?.email || 'user@agency.com'}
+            </p>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/80 shadow-sm group-hover:bg-white/10 transition-all">
+            <User size={18} />
+          </div>
         </div>
       </div>
     </div>

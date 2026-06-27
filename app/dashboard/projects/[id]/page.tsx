@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { getProject, getScopeRequests, updateProject } from '@/lib/database';
-import type { Project, ScopeRequest } from '@/lib/supabase';
+import { getProject, getRequests, updateProject } from '@/lib/database';
+import type { Project, Request } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Copy, ExternalLink, Mail, Check, Globe, MessageCircle } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ArrowLeft, Copy, ExternalLink, Mail, Check, Globe, MessageCircle, TrendingUp, BarChart2 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -20,14 +20,19 @@ export default function ProjectDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const projectId = params.id as string;
   const [project, setProject] = useState<Project | null>(null);
-  const [scopeRequests, setScopeRequests] = useState<ScopeRequest[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const loadData = async () => {
-      const [proj, reqs] = await Promise.all([getProject(projectId), getScopeRequests(projectId)]);
-      setProject(proj); setScopeRequests(reqs); setIsLoading(false);
+      const [proj, reqs] = await Promise.all([
+        getProject(projectId),
+        getRequests(projectId),
+      ]);
+      setProject(proj);
+      setRequests(reqs);
+      setIsLoading(false);
     };
     loadData();
   }, [projectId]);
@@ -61,6 +66,25 @@ export default function ProjectDetailPage() {
     );
   }
 
+  // --- Derived stats from real requests ---
+  const totalRequests = requests.length;
+  const inScopeCount = requests.filter(r => r.ai_decision === 'in-scope').length;
+  const outOfScopeCount = requests.filter(r => r.ai_decision === 'out-of-scope').length;
+  const needsInfoCount = requests.filter(r => r.ai_decision === 'needs-info').length;
+  const pendingCount = requests.filter(r => r.status === 'pending' || r.status === 'analyzed').length;
+
+  // Build bar chart data: group requests by month
+  const monthlyMap: Record<string, { month: string; total: number; inScope: number; outOfScope: number }> = {};
+  requests.forEach(req => {
+    const d = new Date(req.created_at);
+    const key = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    if (!monthlyMap[key]) monthlyMap[key] = { month: key, total: 0, inScope: 0, outOfScope: 0 };
+    monthlyMap[key].total++;
+    if (req.ai_decision === 'in-scope') monthlyMap[key].inScope++;
+    if (req.ai_decision === 'out-of-scope') monthlyMap[key].outOfScope++;
+  });
+  const chartData = Object.values(monthlyMap).slice(-6);
+
   const portalUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/portal/p/${project.portal_token}`;
 
   const handleCopyPortalUrl = () => {
@@ -90,15 +114,6 @@ export default function ProjectDetailPage() {
       default: return 'bg-white/5 text-white/50';
     }
   };
-
-  const chartData = [
-    { month: 'Jan', budget: 8000, spent: 2000 },
-    { month: 'Feb', budget: 10000, spent: 4000 },
-    { month: 'Mar', budget: 12000, spent: 8000 },
-    { month: 'Apr', budget: 15000, spent: 10000 },
-    { month: 'May', budget: 18000, spent: 16000 },
-    { month: 'Jun', budget: 20000, spent: 18000 },
-  ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -131,7 +146,7 @@ export default function ProjectDetailPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-white/[0.03] border border-white/[0.06] rounded-xl">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="requests">Requests ({scopeRequests.length})</TabsTrigger>
+          <TabsTrigger value="requests">Requests ({totalRequests})</TabsTrigger>
           <TabsTrigger value="portal">Client Portal</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
@@ -140,13 +155,13 @@ export default function ProjectDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="glass-card rounded-xl p-6">
               <p className="text-xs text-white/30 mb-2">Total Requests</p>
-              <p className="text-3xl font-bold text-white">{project.request_count}</p>
-              <p className="text-xs text-white/30 mt-2">{project.scope_analytics?.inScope || 0} in-scope, {project.scope_analytics?.outOfScope || 0} out-of-scope</p>
+              <p className="text-3xl font-bold text-white">{totalRequests}</p>
+              <p className="text-xs text-white/30 mt-2">{inScopeCount} in-scope, {outOfScopeCount} out-of-scope</p>
             </Card>
             <Card className="glass-card rounded-xl p-6">
-              <p className="text-xs text-white/30 mb-2">Active Tasks</p>
-              <p className="text-3xl font-bold text-white">{project.task_count}</p>
-              <p className="text-xs text-white/30 mt-2">{Math.floor(project.task_count * 0.7)} completed</p>
+              <p className="text-xs text-white/30 mb-2">Pending Review</p>
+              <p className="text-3xl font-bold text-white">{pendingCount}</p>
+              <p className="text-xs text-white/30 mt-2">{needsInfoCount} awaiting clarification</p>
             </Card>
             <Card className="glass-card rounded-xl p-6">
               <p className="text-xs text-white/30 mb-2">Client</p>
@@ -163,36 +178,78 @@ export default function ProjectDetailPage() {
           </div>
 
           <Card className="glass-card rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Activity Tracking</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.3)' }} />
-                <YAxis stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.3)' }} />
-                <Tooltip contentStyle={{ backgroundColor: '#0F1629', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff' }} />
-                <Line type="monotone" dataKey="budget" stroke="#3b82f6" strokeWidth={2} name="Budget" />
-                <Line type="monotone" dataKey="spent" stroke="#f43f5e" strokeWidth={2} name="Spent" />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                <BarChart2 className="w-4 h-4 text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Request Activity</h3>
+                <p className="text-xs text-white/40">Requests per month from this project's portal</p>
+              </div>
+            </div>
+
+            {chartData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 gap-3">
+                <TrendingUp className="w-10 h-10 text-white/10" />
+                <p className="text-white/30 text-sm">No activity yet — send your client the portal link to get started.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={chartData} barSize={24}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                  <XAxis dataKey="month" stroke="rgba(255,255,255,0.2)" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="rgba(255,255,255,0.2)" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#0F1629', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff', fontSize: 13 }}
+                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                  />
+                  <Bar dataKey="inScope" name="In Scope" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="outOfScope" name="Out of Scope" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </Card>
         </TabsContent>
 
         <TabsContent value="requests" className="space-y-4 mt-6">
-          {scopeRequests.length === 0 ? (
-            <Card className="glass-card rounded-xl p-12 text-center"><p className="text-white/30">No scope requests yet</p></Card>
+          {requests.length === 0 ? (
+            <Card className="glass-card rounded-xl p-12 text-center">
+              <TrendingUp className="w-10 h-10 text-white/10 mx-auto mb-3" />
+              <p className="text-white/30">No requests yet</p>
+              <p className="text-xs text-white/20 mt-1">Send your client the portal link to start receiving requests</p>
+            </Card>
           ) : (
-            scopeRequests.map((request) => (
-              <Card key={request.id} className="glass-card rounded-xl p-4 hover:border-white/10 transition-all">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-white truncate">{request.title}</h4>
-                    <p className="text-sm text-white/40 mt-1">From {request.client_name}</p>
+            requests.map((request) => {
+              const decisionColor =
+                request.ai_decision === 'in-scope' ? 'text-emerald-400'
+                : request.ai_decision === 'out-of-scope' ? 'text-red-400'
+                : 'text-amber-400';
+              return (
+                <Card key={request.id} className="glass-card rounded-xl p-4 hover:border-white/10 transition-all">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white truncate text-sm">{request.message}</p>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <p className="text-xs text-white/30">{request.client_id}</p>
+                        <span className="text-white/10">•</span>
+                        <p className="text-xs text-white/30">{new Date(request.created_at).toLocaleDateString()}</p>
+                        {request.ai_decision && (
+                          <>
+                            <span className="text-white/10">•</span>
+                            <span className={`text-xs font-medium capitalize ${decisionColor}`}>
+                              {request.ai_decision}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {request.estimated_impact && (
+                      <span className="text-xs text-white/40 bg-white/[0.04] px-2 py-1 rounded-lg flex-shrink-0">{request.estimated_impact}</span>
+                    )}
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/requests/${request.id}`)}
-                    className="border-white/[0.06] bg-white/[0.02] text-white/60 hover:bg-white/[0.06] hover:text-white">View</Button>
-                </div>
-              </Card>
-            ))
+                </Card>
+              );
+            })
           )}
         </TabsContent>
 
@@ -278,10 +335,10 @@ export default function ProjectDetailPage() {
           <Card className="glass-card rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Scope Analytics</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div><p className="text-xs text-white/30 mb-1">Total Requests</p><p className="text-2xl font-bold text-white">{project.scope_analytics?.totalRequests || 0}</p></div>
-              <div><p className="text-xs text-white/30 mb-1">In Scope</p><p className="text-2xl font-bold text-emerald-400">{project.scope_analytics?.inScope || 0}</p></div>
-              <div><p className="text-xs text-white/30 mb-1">Out of Scope</p><p className="text-2xl font-bold text-red-400">{project.scope_analytics?.outOfScope || 0}</p></div>
-              <div><p className="text-xs text-white/30 mb-1">Needs Info</p><p className="text-2xl font-bold text-amber-400">{project.scope_analytics?.needsInfo || 0}</p></div>
+              <div><p className="text-xs text-white/30 mb-1">Total Requests</p><p className="text-2xl font-bold text-white">{totalRequests}</p></div>
+              <div><p className="text-xs text-white/30 mb-1">In Scope</p><p className="text-2xl font-bold text-emerald-400">{inScopeCount}</p></div>
+              <div><p className="text-xs text-white/30 mb-1">Out of Scope</p><p className="text-2xl font-bold text-red-400">{outOfScopeCount}</p></div>
+              <div><p className="text-xs text-white/30 mb-1">Needs Info</p><p className="text-2xl font-bold text-amber-400">{needsInfoCount}</p></div>
             </div>
           </Card>
         </TabsContent>
