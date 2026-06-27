@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import Header from '@/components/header'
 import HeroSection from '@/components/hero-section'
-import SocialProofBar from '@/components/social-proof-bar'
-import FeaturesSection from '@/components/features-section'
-import HowItWorks from '@/components/how-it-works'
+import ProblemSolution from '@/components/problem-solution'
+import ProductPreviews from '@/components/product-previews'
 import Testimonials from '@/components/testimonials'
-import PricingSection from '@/components/pricing-section'
 import CtaSection from '@/components/cta-section'
 import Footer from '@/components/footer'
 
@@ -37,12 +35,15 @@ export default function Home() {
     <main className="w-full landing-page">
       <Header />
       <HeroSection />
-      <SocialProofBar />
-      <FeaturesSection />
-      <HowItWorks />
+      
+      {/* High-level Overview */}
+      <ProblemSolution />
+      <ProductPreviews />
+      
+      {/* Social Proof & CTA */}
       <Testimonials />
-      <PricingSection />
       <CtaSection />
+      
       <Footer />
     </main>
   )

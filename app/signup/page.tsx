@@ -35,6 +35,7 @@ export default function SignupPage() {
     setIsLoading(true); setErrors({});
     const { user, error } = await signUp(formData.email, formData.password, formData.name);
     if (error || !user) { setErrors({ submit: error || 'Failed to create account.' }); setIsLoading(false); return; }
+    localStorage.setItem('hasAccount', 'true');
     router.push('/onboarding');
   };
 

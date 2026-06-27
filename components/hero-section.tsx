@@ -62,7 +62,7 @@ export default function HeroSection() {
               fontWeight: 400,
             }}
           >
-            Life is toobeautiful,<br className="hidden sm:block" />
+            Life is too beautiful,<br className="hidden sm:block" />
                 to waste on clients unpaid changes.
           </h1>
         </div>
