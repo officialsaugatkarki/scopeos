@@ -21,7 +21,7 @@ export function ProjectsGrid() {
       if (userId) { 
         const [projData, reqData] = await Promise.all([
           getProjects(userId),
-          getRequests()
+          getRequests(undefined, userId)  // scoped to this user's projects only
         ]);
         setProjects(projData);
         setRequests(reqData);

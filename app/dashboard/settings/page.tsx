@@ -6,9 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Copy, Trash2, Plus, Download, Check } from 'lucide-react';
-import { getCurrentUserId } from '@/lib/auth';
+import { Upload, Copy, Trash2, Plus, Download, Check, AlertCircle } from 'lucide-react';
+import { getCurrentUserId, getSession } from '@/lib/auth';
 import { getAgencyPricing, upsertAgencyPricing } from '@/lib/database';
+import { supabase } from '@/lib/supabase';
+
+// Plan display names and project limits
+const PLAN_META: Record<string, { label: string; price: string; maxProjects: number; maxRequests: number }> = {
+  free:       { label: 'Free Plan',       price: '$0/month', maxProjects: 3,   maxRequests: 50 },
+  pro:        { label: 'Pro Plan',        price: '$0/month (Beta)', maxProjects: 999, maxRequests: 9999 },
+  enterprise: { label: 'Enterprise Plan', price: 'Custom',   maxProjects: 999, maxRequests: 9999 },
+};
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -31,24 +39,73 @@ export default function SettingsPage() {
     notes: '',
   });
   const [pricingSaved, setPricingSaved] = useState(false);
+  const [planLabel, setPlanLabel] = useState('Free Plan');
+  const [planPrice, setPlanPrice] = useState('$0/month');
+  const [usedProjects, setUsedProjects] = useState(0);
+  const [maxProjects, setMaxProjects] = useState(3);
+  const [usedRequests, setUsedRequests] = useState(0);
+  const [maxRequests, setMaxRequests] = useState(50);
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    const loadPricing = async () => {
-      const userId = await getCurrentUserId();
-      if (userId) {
-        const pricing = await getAgencyPricing(userId);
-        if (pricing) {
-          setPricingForm({
-            hourly_rate: String(pricing.hourly_rate),
-            currency: pricing.currency,
-            min_hours: String(pricing.min_hours),
-            overage_multiplier: String(pricing.overage_multiplier),
-            notes: pricing.notes || '',
-          });
-        }
+    const loadData = async () => {
+      const auth = await getSession();
+      if (!auth.user?.id) return;
+      const uid = auth.user.id;
+
+      setUserName(auth.user.name || '');
+      setUserEmail(auth.user.email || '');
+
+      // Load pricing
+      const pricing = await getAgencyPricing(uid);
+      if (pricing) {
+        setPricingForm({
+          hourly_rate: String(pricing.hourly_rate),
+          currency: pricing.currency,
+          min_hours: String(pricing.min_hours),
+          overage_multiplier: String(pricing.overage_multiplier),
+          notes: pricing.notes || '',
+        });
+      }
+
+      // Load real plan from profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('current_plan')
+        .eq('id', uid)
+        .single();
+
+      const slug = profile?.current_plan || 'free';
+      const meta = PLAN_META[slug] ?? PLAN_META.free;
+      setPlanLabel(meta.label);
+      setPlanPrice(meta.price);
+      setMaxProjects(meta.maxProjects);
+      setMaxRequests(meta.maxRequests);
+
+      // Count user's projects
+      const { count: pCount } = await supabase
+        .from('projects')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', uid);
+      setUsedProjects(pCount ?? 0);
+
+      // Count user's requests (via projects)
+      const { data: userProjects } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('user_id', uid);
+        
+      const projectIds = (userProjects || []).map((p: any) => p.id);
+      if (projectIds.length > 0) {
+        const { count: rCount } = await supabase
+          .from('requests')
+          .select('id', { count: 'exact', head: true })
+          .in('project_id', projectIds);
+        setUsedRequests(rCount ?? 0);
       }
     };
-    loadPricing();
+    loadData();
   }, []);
 
   const savePricing = async () => {
@@ -65,41 +122,45 @@ export default function SettingsPage() {
     setTimeout(() => setPricingSaved(false), 2000);
   };
 
+  const projectPct = maxProjects >= 999 ? 0 : Math.min(100, (usedProjects / maxProjects) * 100);
+  const requestPct = maxRequests >= 9999 ? 0 : Math.min(100, (usedRequests / maxRequests) * 100);
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl">
       <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
-        <p className="text-muted-foreground">Manage your account and workspace preferences</p>
+        <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Settings</h1>
+        <p className="text-white/60">Manage your account and workspace preferences</p>
       </div>
 
+      {/* TABS CONTAINER */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="agency">Agency</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="api">API Keys</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 bg-white/10 p-1 rounded-xl mb-6 border border-white/10 text-white/70">
+          <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:text-[#0D1526] rounded-lg text-sm font-medium transition-all">Profile</TabsTrigger>
+          <TabsTrigger value="agency" className="data-[state=active]:bg-white data-[state=active]:text-[#0D1526] rounded-lg text-sm font-medium transition-all">Agency</TabsTrigger>
+          <TabsTrigger value="billing" className="data-[state=active]:bg-white data-[state=active]:text-[#0D1526] rounded-lg text-sm font-medium transition-all">Billing</TabsTrigger>
+          <TabsTrigger value="notifications" className="data-[state=active]:bg-white data-[state=active]:text-[#0D1526] rounded-lg text-sm font-medium transition-all">Notifications</TabsTrigger>
+          <TabsTrigger value="api" className="data-[state=active]:bg-white data-[state=active]:text-[#0D1526] rounded-lg text-sm font-medium transition-all">API Keys</TabsTrigger>
         </TabsList>
 
         {/* PROFILE TAB */}
         <TabsContent value="profile" className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Personal Information</h2>
+          <Card className="p-6 md:p-8 bg-white border border-[#E2E8F4] shadow-sm rounded-2xl text-[#0D1526]">
+            <h2 className="text-2xl font-bold text-[#0D1526] mb-6 tracking-tight">Personal Information</h2>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Avatar Upload */}
               <div>
-                <label className="text-sm font-medium text-foreground mb-3 block">Avatar</label>
-                <div className="flex items-end gap-4">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-2xl font-bold cursor-pointer hover:shadow-lg transition-shadow">
-                    JS
+                <label className="text-sm font-semibold text-[#0D1526] mb-3 block">Avatar</label>
+                <div className="flex items-end gap-5">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#2563EB] to-[#1A56DB] flex items-center justify-center text-white text-2xl font-bold shadow-md cursor-pointer hover:scale-105 transition-transform">
+                    {userName ? userName.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex gap-2 text-[#0D1526] border-[#E2E8F4] hover:bg-slate-50">
                       <Upload size={16} />
-                      Upload
+                      Upload New
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="text-[#64748B] hover:text-red-500">
                       Remove
                     </Button>
                   </div>
@@ -107,29 +168,24 @@ export default function SettingsPage() {
               </div>
 
               {/* Personal Info Form */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Full Name</label>
-                  <Input placeholder="John Smith" />
+                  <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Full Name</label>
+                  <Input value={userName} onChange={(e) => setUserName(e.target.value)} className="bg-white border-[#E2E8F4] text-[#0D1526]" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Email</label>
-                  <Input placeholder="john@agency.com" type="email" />
+                  <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Email</label>
+                  <Input value={userEmail} disabled className="bg-slate-50 border-[#E2E8F4] text-[#64748B]" type="email" />
                 </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Role</label>
-                <Input value="Admin" disabled className="bg-muted" />
               </div>
 
               {/* Preferences */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Preferences</h3>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="border-t border-[#E2E8F4] pt-8">
+                <h3 className="text-lg font-semibold text-[#0D1526] mb-5">Preferences</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Timezone</label>
-                    <select className="w-full px-3 py-2 border border-input rounded-md text-sm">
+                    <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Timezone</label>
+                    <select className="w-full px-3 py-2.5 border border-[#E2E8F4] bg-white rounded-xl text-sm text-[#0D1526] outline-none focus:border-blue-500">
                       <option>America/New_York</option>
                       <option>America/Los_Angeles</option>
                       <option>Europe/London</option>
@@ -137,8 +193,8 @@ export default function SettingsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Date Format</label>
-                    <select className="w-full px-3 py-2 border border-input rounded-md text-sm">
+                    <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Date Format</label>
+                    <select className="w-full px-3 py-2.5 border border-[#E2E8F4] bg-white rounded-xl text-sm text-[#0D1526] outline-none focus:border-blue-500">
                       <option>MM/DD/YYYY</option>
                       <option>DD/MM/YYYY</option>
                       <option>YYYY-MM-DD</option>
@@ -147,22 +203,8 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Language</label>
-                <select className="w-full px-3 py-2 border border-input rounded-md text-sm max-w-xs">
-                  <option>English</option>
-                  <option>Spanish</option>
-                  <option>French</option>
-                </select>
-              </div>
-
-              {/* Password Change */}
-              <div className="border-t pt-6">
-                <Button variant="outline">Change Password</Button>
-              </div>
-
               <div className="flex justify-end pt-4">
-                <Button className="bg-primary hover:bg-primary/90">Save Changes</Button>
+                <Button className="bg-[#2563EB] hover:bg-[#1A56DB] text-white rounded-xl px-6">Save Changes</Button>
               </div>
             </div>
           </Card>
@@ -170,279 +212,182 @@ export default function SettingsPage() {
 
         {/* AGENCY SETTINGS TAB */}
         <TabsContent value="agency" className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Agency Settings</h2>
+          <Card className="p-6 md:p-8 bg-white border border-[#E2E8F4] shadow-sm rounded-2xl text-[#0D1526]">
+            <h2 className="text-2xl font-bold text-[#0D1526] mb-6 tracking-tight">Agency Settings</h2>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Agency Info */}
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Agency Information</h3>
-                <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-[#0D1526] mb-4">Agency Information</h3>
+                <div className="space-y-5">
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Agency Name</label>
-                    <Input placeholder="Your Agency Name" />
+                    <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Agency Name</label>
+                    <Input placeholder="Your Agency Name" className="bg-white border-[#E2E8F4] text-[#0D1526]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Logo</label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded border border-dashed border-primary/30 flex items-center justify-center bg-muted">
-                        📷
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Upload size={16} className="mr-2" />
-                          Upload
-                        </Button>
-                        <Button variant="ghost" size="sm">Remove</Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Website</label>
-                    <Input placeholder="https://youragency.com" />
+                    <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Website</label>
+                    <Input placeholder="https://youragency.com" className="bg-white border-[#E2E8F4] text-[#0D1526]" />
                   </div>
                 </div>
               </div>
 
-              {/* Pricing Rules — wired to Supabase */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-foreground mb-2">Pricing Rules</h3>
-                <p className="text-xs text-muted-foreground mb-4">These values are used by AI to calculate costs for out-of-scope change requests.</p>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+              {/* Pricing Rules */}
+              <div className="border-t border-[#E2E8F4] pt-8">
+                <h3 className="text-lg font-semibold text-[#0D1526] mb-2">Pricing Rules</h3>
+                <p className="text-xs text-[#64748B] mb-5">These values are used by AI to calculate costs for out-of-scope change requests.</p>
+                
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Hourly Rate</label>
+                      <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Hourly Rate</label>
                       <Input
                         type="number"
                         placeholder="150"
                         value={pricingForm.hourly_rate}
                         onChange={(e) => setPricingForm({ ...pricingForm, hourly_rate: e.target.value })}
+                        className="bg-white border-[#E2E8F4] text-[#0D1526]"
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Currency</label>
+                      <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Currency</label>
                       <select
-                        className="w-full px-3 py-2 border border-input rounded-md text-sm"
+                        className="w-full px-3 py-2.5 border border-[#E2E8F4] bg-white rounded-xl text-sm text-[#0D1526] outline-none focus:border-blue-500"
                         value={pricingForm.currency}
                         onChange={(e) => setPricingForm({ ...pricingForm, currency: e.target.value })}
                       >
                         <option>USD</option>
                         <option>EUR</option>
                         <option>GBP</option>
-                        <option>AUD</option>
-                        <option>CAD</option>
                       </select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Minimum Billable Hours</label>
+                      <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Minimum Billable Hours</label>
                       <Input
                         type="number"
                         step="0.5"
                         placeholder="1"
                         value={pricingForm.min_hours}
                         onChange={(e) => setPricingForm({ ...pricingForm, min_hours: e.target.value })}
+                        className="bg-white border-[#E2E8F4] text-[#0D1526]"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Minimum hours charged per change request</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Rush/Overage Multiplier</label>
+                      <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Rush Multiplier</label>
                       <Input
                         type="number"
                         step="0.1"
                         placeholder="1.5"
                         value={pricingForm.overage_multiplier}
                         onChange={(e) => setPricingForm({ ...pricingForm, overage_multiplier: e.target.value })}
+                        className="bg-white border-[#E2E8F4] text-[#0D1526]"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Applied for rush or overage work (e.g., 1.5x)</p>
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Pricing Notes (for AI context)</label>
+                    <label className="text-sm font-semibold text-[#0D1526] mb-2 block">Pricing Notes (for AI context)</label>
                     <textarea
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm"
+                      className="w-full px-3 py-3 border border-[#E2E8F4] rounded-xl text-sm bg-white text-[#0D1526] outline-none focus:border-blue-500"
                       rows={3}
-                      placeholder="e.g., First 10 hours included in monthly retainer. Bug fixes are always in-scope. Design revisions beyond 3 rounds are billable..."
+                      placeholder="e.g., First 10 hours included in monthly retainer..."
                       value={pricingForm.notes}
                       onChange={(e) => setPricingForm({ ...pricingForm, notes: e.target.value })}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">AI will reference these rules when making scope decisions</p>
                   </div>
                 </div>
               </div>
 
-              {/* AI Settings */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">AI Settings</h3>
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-foreground">Confidence Threshold</label>
-                      <span className="text-lg font-bold text-primary">85%</span>
-                    </div>
-                    <input type="range" min="0" max="100" defaultValue="85" className="w-full" />
-                    <p className="text-xs text-muted-foreground mt-2">Auto-approve in-scope requests above this threshold. Requests below need manual review.</p>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-3 block">Scope Sensitivity</label>
-                    <div className="flex gap-2">
-                      {['Low', 'Medium', 'High'].map((level) => (
-                        <Button
-                          key={level}
-                          variant={level === 'Medium' ? 'default' : 'outline'}
-                          className="flex-1"
-                          size="sm"
-                        >
-                          {level}
-                        </Button>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">How strict should AI be with scope boundaries?</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Email Settings */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Email Settings</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">From Name</label>
-                    <Input placeholder="ScopeOS Team" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Reply-to Email</label>
-                    <Input placeholder="noreply@agency.com" type="email" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Email Signature</label>
-                    <textarea className="w-full px-3 py-2 border border-input rounded-md text-sm" rows={4} placeholder="Add your email signature..." />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4">
-                <Button onClick={savePricing} className="bg-primary hover:bg-primary/90 flex items-center gap-2">
-                  {pricingSaved ? <><Check size={16} /> Saved!</> : 'Save Changes'}
+              <div className="flex justify-end pt-4 border-t border-[#E2E8F4]">
+                <Button onClick={savePricing} className="bg-[#2563EB] hover:bg-[#1A56DB] text-white rounded-xl px-6 flex items-center gap-2">
+                  {pricingSaved ? <><Check size={16} /> Saved!</> : 'Save Agency Settings'}
                 </Button>
               </div>
             </div>
           </Card>
         </TabsContent>
 
-        {/* BILLING TAB */}
+        {/* BILLING TAB - FIXED TO REAL DATA */}
         <TabsContent value="billing" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Current Plan */}
-            <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Current Plan</h3>
+            <Card className="p-6 md:p-8 bg-gradient-to-br from-blue-50 to-indigo-50/30 border border-blue-100 shadow-sm rounded-2xl">
+              <h3 className="text-lg font-bold text-[#0D1526] mb-4">Current Plan</h3>
               <div className="mb-6">
-                <p className="text-3xl font-bold text-foreground">Growth Plan</p>
-                <p className="text-xl text-primary font-semibold mt-1">$299/month</p>
+                <p className="text-3xl font-black text-[#0D1526] tracking-tight">{planLabel}</p>
+                <p className="text-lg text-[#2563EB] font-semibold mt-1">{planPrice}</p>
               </div>
 
-              <div className="space-y-3 mb-6">
+              <div className="space-y-4 mb-8">
                 <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-muted-foreground">Projects</span>
-                    <span className="text-sm font-medium text-foreground">7/10</span>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium text-[#64748B]">Projects</span>
+                    <span className="text-sm font-bold text-[#0D1526]">
+                      {maxProjects >= 999 ? `${usedProjects} / Unlimited` : `${usedProjects} / ${maxProjects}`}
+                    </span>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full w-[70%] bg-primary rounded-full" />
+                  <div className="h-2 bg-blue-200/50 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#2563EB] rounded-full transition-all duration-500" style={{ width: `${projectPct}%` }} />
                   </div>
                 </div>
                 <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-muted-foreground">Requests</span>
-                    <span className="text-sm font-medium text-foreground">142/200</span>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium text-[#64748B]">Requests</span>
+                    <span className="text-sm font-bold text-[#0D1526]">
+                      {maxRequests >= 9999 ? `${usedRequests} / Unlimited` : `${usedRequests} / ${maxRequests}`}
+                    </span>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full w-[71%] bg-primary rounded-full" />
+                  <div className="h-2 bg-blue-200/50 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#2563EB] rounded-full transition-all duration-500" style={{ width: `${requestPct}%` }} />
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button className="flex-1 bg-primary hover:bg-primary/90">Upgrade Plan</Button>
-                <Button variant="outline" className="flex-1">Manage Billing</Button>
+              <div className="flex gap-3">
+                {planLabel === 'Free Plan' && (
+                  <Button onClick={() => window.location.href='/onboarding/plan'} className="flex-1 bg-[#2563EB] hover:bg-[#1A56DB] text-white shadow-sm rounded-xl">
+                    Upgrade to Pro
+                  </Button>
+                )}
+                <Button variant="outline" className="flex-1 bg-white border-blue-200 text-[#2563EB] hover:bg-blue-50 rounded-xl">
+                  Contact Support
+                </Button>
               </div>
             </Card>
 
-            {/* Payment Method */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Payment Method</h3>
-              <div className="mb-6 p-4 bg-muted rounded-lg flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Visa</p>
-                  <p className="font-medium text-foreground">•••• •••• •••• 4242</p>
-                </div>
-                <span className="text-xs text-muted-foreground">Expires 12/25</span>
+            {/* Payment Method - Removed fake data */}
+            <Card className="p-6 md:p-8 bg-white border border-[#E2E8F4] shadow-sm rounded-2xl flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="w-8 h-8 text-[#94A3B8]" />
               </div>
-              <Button variant="outline" className="w-full">Update Payment Method</Button>
+              <h3 className="text-lg font-bold text-[#0D1526] mb-2">Billing Managed via Stripe</h3>
+              <p className="text-[#64748B] text-sm mb-6 max-w-[250px]">
+                Payment methods and invoicing will be available in the upcoming beta release.
+              </p>
+              <Button disabled variant="outline" className="border-[#E2E8F4] text-[#64748B] bg-slate-50 rounded-xl">
+                Coming Soon
+              </Button>
             </Card>
           </div>
-
-          {/* Billing History */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Billing History</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b border-border">
-                  <tr>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Date</th>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Amount</th>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Status</th>
-                    <th className="text-right py-3 text-muted-foreground font-medium">Invoice</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { date: 'Jan 1, 2024', amount: '$299', status: 'Paid' },
-                    { date: 'Dec 1, 2023', amount: '$299', status: 'Paid' },
-                    { date: 'Nov 1, 2023', amount: '$199', status: 'Paid' },
-                  ].map((row, i) => (
-                    <tr key={i} className="border-b border-border hover:bg-muted/50">
-                      <td className="py-3">{row.date}</td>
-                      <td className="py-3 font-medium">{row.amount}</td>
-                      <td className="py-3">
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700">
-                          {row.status}
-                        </Badge>
-                      </td>
-                      <td className="text-right py-3">
-                        <Button variant="ghost" size="sm">
-                          <Download size={16} />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
         </TabsContent>
 
         {/* NOTIFICATIONS TAB */}
         <TabsContent value="notifications" className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Notification Preferences</h2>
+          <Card className="p-6 md:p-8 bg-white border border-[#E2E8F4] shadow-sm rounded-2xl text-[#0D1526]">
+            <h2 className="text-2xl font-bold text-[#0D1526] mb-6 tracking-tight">Notification Preferences</h2>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Email Notifications */}
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Email Notifications</h3>
-                <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-[#0D1526] mb-4">Email Alerts</h3>
+                <div className="space-y-2">
                   {[
                     { key: 'newRequest', label: 'New request received' },
                     { key: 'clarification', label: 'Request needs clarification' },
                     { key: 'outOfScope', label: 'Out-of-scope request detected' },
                     { key: 'approved', label: 'Change request approved by client' },
-                    { key: 'weeklySummary', label: 'Weekly project summary' },
-                    { key: 'mentions', label: 'Team member mentions' },
                   ].map((item) => (
-                    <label key={item.key} className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors">
+                    <label key={item.key} className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-3 rounded-xl border border-transparent hover:border-[#E2E8F4] transition-all">
                       <input
                         type="checkbox"
                         checked={notifications[item.key as keyof typeof notifications]}
@@ -452,33 +397,11 @@ export default function SettingsPage() {
                             [item.key]: e.target.checked,
                           })
                         }
-                        className="w-4 h-4"
+                        className="w-4 h-4 rounded border-[#C8D6F0] text-[#2563EB] focus:ring-[#2563EB]"
                       />
-                      <span className="text-sm text-foreground">{item.label}</span>
+                      <span className="text-sm font-medium text-[#0D1526]">{item.label}</span>
                     </label>
                   ))}
-                </div>
-              </div>
-
-              {/* Slack Notifications */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Slack Notifications</h3>
-                <Button variant="outline" className="mb-4">Connect Slack</Button>
-                <p className="text-sm text-muted-foreground">Connect Slack to receive notifications directly in your Slack workspace.</p>
-              </div>
-
-              {/* In-app Notifications */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">In-app Notifications</h3>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors">
-                    <input type="checkbox" defaultChecked className="w-4 h-4" />
-                    <span className="text-sm text-foreground">Desktop notifications</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors">
-                    <input type="checkbox" defaultChecked className="w-4 h-4" />
-                    <span className="text-sm text-foreground">Sound alerts</span>
-                  </label>
                 </div>
               </div>
             </div>
@@ -487,48 +410,43 @@ export default function SettingsPage() {
 
         {/* API KEYS TAB */}
         <TabsContent value="api" className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-foreground">API Keys</h2>
-              <Button className="bg-primary hover:bg-primary/90 flex gap-2">
-                <Plus size={16} />
-                Generate API Key
+          <Card className="p-6 md:p-8 bg-white border border-[#E2E8F4] shadow-sm rounded-2xl text-[#0D1526]">
+            <div className="flex items-center justify-between mb-8 border-b border-[#E2E8F4] pb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-[#0D1526] tracking-tight">API Keys</h2>
+                <p className="text-[#64748B] text-sm mt-1">Manage keys for programmatic access.</p>
+              </div>
+              <Button className="bg-[#2563EB] hover:bg-[#1A56DB] text-white rounded-xl shadow-sm flex gap-2">
+                <Plus size={16} /> Generate Key
               </Button>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="border-b border-border">
+                <thead className="border-b border-[#E2E8F4]">
                   <tr>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Key Name</th>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Created</th>
-                    <th className="text-left py-3 text-muted-foreground font-medium">Last Used</th>
-                    <th className="text-right py-3 text-muted-foreground font-medium">Actions</th>
+                    <th className="text-left py-3 text-[#64748B] font-semibold text-xs uppercase tracking-wider">Key Name</th>
+                    <th className="text-left py-3 text-[#64748B] font-semibold text-xs uppercase tracking-wider">Created</th>
+                    <th className="text-right py-3 text-[#64748B] font-semibold text-xs uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {apiKeys.map((key) => (
-                    <tr key={key.id} className="border-b border-border hover:bg-muted/50">
-                      <td className="py-3 font-medium">{key.name}</td>
-                      <td className="py-3 text-muted-foreground">{key.created}</td>
-                      <td className="py-3 text-muted-foreground">{key.lastUsed}</td>
-                      <td className="text-right py-3 flex justify-end gap-2">
-                        <Button variant="ghost" size="sm">
+                    <tr key={key.id} className="border-b border-[#E2E8F4] hover:bg-slate-50 transition-colors">
+                      <td className="py-4 font-semibold text-[#0D1526]">{key.name}</td>
+                      <td className="py-4 text-[#64748B]">{key.created}</td>
+                      <td className="py-4 flex justify-end gap-2">
+                        <Button variant="ghost" size="sm" className="text-[#64748B] hover:text-[#0D1526] hover:bg-slate-100">
                           <Copy size={16} />
                         </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 size={16} className="text-destructive" />
+                        <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-600 hover:bg-red-50">
+                          <Trash2 size={16} />
                         </Button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-
-            <div className="mt-6 p-4 bg-muted rounded-lg">
-              <p className="text-sm text-foreground mb-2 font-medium">Need help?</p>
-              <a href="/demo" className="text-sm text-primary hover:underline">View API Documentation</a>
             </div>
           </Card>
         </TabsContent>

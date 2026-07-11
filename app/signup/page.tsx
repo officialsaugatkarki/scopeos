@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { signUp, validateEmail, validatePassword } from '@/lib/auth';
+import { initializeUserAccountData } from '@/lib/mock-data';
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 export default function SignupPage() {
@@ -36,6 +37,7 @@ export default function SignupPage() {
     const { user, error } = await signUp(formData.email, formData.password, formData.name);
     if (error || !user) { setErrors({ submit: error || 'Failed to create account.' }); setIsLoading(false); return; }
     localStorage.setItem('hasAccount', 'true');
+    localStorage.setItem('scopeos_last_user', JSON.stringify({ id: user.id, name: user.name, email: user.email }));
     router.push('/onboarding');
   };
 

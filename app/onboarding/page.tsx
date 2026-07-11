@@ -23,6 +23,11 @@ export default function OnboardingPage() {
         router.push('/signup');
         return;
       }
+      const selectedPlan = localStorage.getItem('scopeos_selected_plan');
+      if (!selectedPlan) {
+        router.push('/onboarding/plan');
+        return;
+      }
       const uid = await getCurrentUserId();
       setUserId(uid);
       setChecking(false);

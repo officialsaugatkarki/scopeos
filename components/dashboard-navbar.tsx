@@ -20,7 +20,7 @@ export function DashboardNavbar({ title = 'Dashboard' }: DashboardNavbarProps) {
 
   return (
     <div
-      className="h-16 flex items-center justify-between px-6 sticky top-0 z-40"
+      className="h-16 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-40"
       style={{
         background: 'rgba(255, 255, 255, 0.02)',
         backdropFilter: 'blur(20px)',
@@ -28,10 +28,9 @@ export function DashboardNavbar({ title = 'Dashboard' }: DashboardNavbarProps) {
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
       }}
     >
-      {/* Left */}
-      <div className="flex items-center gap-6 flex-1">
-        <h1 className="text-xl font-bold text-white tracking-tight">{title}</h1>
-        <div className="hidden md:flex relative flex-1 max-w-sm ml-4">
+      <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-0">
+        <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">{title}</h1>
+        <div className="hidden md:flex relative flex-1 max-w-sm ml-2">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
           <Input
             type="text"

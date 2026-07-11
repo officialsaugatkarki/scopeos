@@ -130,11 +130,24 @@
   }
 
   /* Default body — soft blue-to-deep gradient */
+  html {
+    overflow-x: hidden;
+  }
+
   body {
     @apply text-foreground;
     background: linear-gradient(180deg, #0B1224 0%, #0F1A33 30%, #0A1128 60%, #060E20 100%);
     background-attachment: fixed;
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  main, section, article, aside {
+    min-width: 0;
   }
 
   /* Landing page wrapper */

@@ -4,13 +4,14 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Inbox } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getRequests } from '@/lib/database';
+import { getCurrentUserId } from '@/lib/auth';
 import type { Request } from '@/lib/supabase';
 
 const statusConfig = {
-  pending: { label: 'Pending', color: 'bg-amber-50 text-amber-600 border border-amber-200' },
-  'in-review': { label: 'In Review', color: 'bg-blue-50 text-[#2563EB] border border-blue-200' },
-  approved: { label: 'Approved', color: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
-  rejected: { label: 'Rejected', color: 'bg-red-50 text-red-600 border border-red-200' },
+  pending:    { label: 'Pending',   color: 'bg-amber-50 text-amber-600 border border-amber-200' },
+  'in-review':{ label: 'In Review', color: 'bg-blue-50 text-[#2563EB] border border-blue-200' },
+  approved:   { label: 'Approved',  color: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
+  rejected:   { label: 'Rejected',  color: 'bg-red-50 text-red-600 border border-red-200' },
 };
 
 export function RequestsTable() {
@@ -19,7 +20,11 @@ export function RequestsTable() {
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await getRequests();
+      // Always scope to the logged-in user — never show another user's requests
+      const userId = await getCurrentUserId();
+      if (!userId) { setIsLoading(false); return; }
+
+      const data = await getRequests(undefined, userId);
       setRequests(data.filter(r => r.ai_decision === 'out-of-scope'));
       setIsLoading(false);
     };
@@ -64,7 +69,7 @@ export function RequestsTable() {
               </tr>
             ) : (
               requests.map((request) => {
-                const statusInfo = statusConfig[request.status as keyof typeof statusConfig] || 
+                const statusInfo = statusConfig[request.status as keyof typeof statusConfig] ||
                   { label: request.status, color: 'bg-slate-100 text-[#64748B] border border-slate-200' };
                 return (
                   <tr key={request.id} className="border-b border-[#E2E8F4] hover:bg-blue-50/30 transition-colors group cursor-pointer" onClick={() => window.location.href = `/dashboard/requests/${request.id}`}>

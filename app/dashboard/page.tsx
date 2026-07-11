@@ -26,7 +26,8 @@ export default function DashboardPage() {
       const auth = await getSession();
       if (!auth.isAuthenticated) { router.push('/login'); return; }
       setIsAuthorized(true); setMounted(true);
-      const data = await getRequests();
+      // Pass userId so getRequests only returns this user's data
+      const data = await getRequests(undefined, auth.user!.id);
       setRequests(data); setIsLoading(false);
     };
     init();
@@ -120,7 +121,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="animate-in fade-in duration-500 delay-200">
-            <h2 className="text-lg font-bold text-[#0D1526] mb-4">Active Projects</h2>
+            <h2 className="text-lg font-bold text-white mb-4">Active Projects</h2>
             <ProjectsGrid />
           </div>
         </div>
@@ -128,7 +129,7 @@ export default function DashboardPage() {
         {/* Right Column (Narrower) */}
         <div className="xl:col-span-1 space-y-8">
           <div className="animate-in fade-in duration-500 delay-300">
-            <h2 className="text-lg font-bold text-[#0D1526] mb-4">All Requests Overview</h2>
+            <h2 className="text-lg font-bold text-white mb-4">All Requests Overview</h2>
             <div className="bg-white border border-[#E2E8F4] rounded-2xl shadow-sm overflow-hidden p-1">
                <RequestsTable />
             </div>

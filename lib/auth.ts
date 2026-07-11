@@ -23,32 +23,73 @@ export async function signUp(
   password: string,
   name: string
 ): Promise<{ user: User | null; error: string | null }> {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name,
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+        },
       },
-    },
-  });
+    });
 
-  if (error) {
-    return { user: null, error: error.message };
+    if (error) {
+      return { user: null, error: error.message };
+    }
+
+    if (data.user) {
+      // Upsert the profile row.
+      // The DB trigger (handle_new_user / SECURITY DEFINER) fires first and
+      // creates the row. This upsert merges any client-supplied fields on top.
+      // NOTE: do NOT chain .select().single() here — if the trigger already
+      // created the row and nothing changed, PostgREST returns 0 rows and
+      // .single() would throw a PGRST116 error.
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: data.user.id,
+            email: data.user.email || email,
+            name: name,
+            agency_name: '',
+            role: 'Agency Owner',
+            team_size: '1',
+            avatar_url: '',
+            website: '',
+            default_hourly_rate: 0,
+            currency: 'USD',
+            timezone: 'UTC',
+            date_format: 'MM/DD/YYYY',
+            language: 'en',
+            onboarding_completed: false,
+            current_plan: 'free',
+            subscription_status: 'active',
+            is_on_trial: true,
+            trial_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          { onConflict: 'id' }   // merge on conflict (no ignoreDuplicates)
+        );
+
+      if (profileError) {
+        // Non-fatal: auth succeeded, profile can be backfilled on next login
+        console.error('Profile upsert error (non-fatal):', profileError);
+      }
+
+      return {
+        user: {
+          id: data.user.id,
+          email: data.user.email || email,
+          name: name,
+        },
+        error: null,
+      };
+    }
+
+    return { user: null, error: 'Signup failed' };
+  } catch (err) {
+    return { user: null, error: err instanceof Error ? err.message : 'An error occurred' };
   }
-
-  if (data.user) {
-    return {
-      user: {
-        id: data.user.id,
-        email: data.user.email || email,
-        name: name,
-      },
-      error: null,
-    };
-  }
-
-  return { user: null, error: 'Signup failed' };
 }
 
 export async function signIn(

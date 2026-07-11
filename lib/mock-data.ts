@@ -121,6 +121,61 @@ export const MOCK_USERS: User[] = [
   },
 ];
 
+const STORAGE_PREFIX = 'scopeguard_';
+const ACCOUNT_DATA_PREFIX = `${STORAGE_PREFIX}account_`;
+
+export function getMockProjects(userId: string): Project[] {
+  if (typeof window === 'undefined') return [];
+
+  const storageKey = `${ACCOUNT_DATA_PREFIX}${userId}`;
+  const stored = localStorage.getItem(storageKey);
+
+  if (stored) {
+    try {
+      return JSON.parse(stored).projects || [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+export function getUserProjectUsage(userId: string): { used: number; total: number } {
+  const projects = getMockProjects(userId);
+  return {
+    used: projects.length,
+    total: 15,
+  };
+}
+
+export function saveUserProjects(userId: string, projects: Project[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(`${ACCOUNT_DATA_PREFIX}${userId}`, JSON.stringify({ projects }));
+}
+
+export function initializeUserAccountData(user: { id: string; email: string; name: string; plan?: string }) {
+  if (typeof window === 'undefined') return;
+
+  const storageKey = `${ACCOUNT_DATA_PREFIX}${user.id}`;
+  if (!localStorage.getItem(storageKey)) {
+    const accountData = {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        agencyName: `${user.name.split(' ')[0] || 'Studio'} Studio`,
+        role: 'Agency Owner',
+        plan: user.plan || 'free',
+      },
+      projects: [],
+      createdAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem(storageKey, JSON.stringify(accountData));
+  }
+}
+
 export const MOCK_PROJECTS: Project[] = [
   {
     id: '1',
@@ -542,16 +597,8 @@ export const MOCK_STATS = {
   avgTimePerRequest: 6.5,
 };
 
-// Storage helper
-const STORAGE_PREFIX = 'scopeguard_';
-
 export function getMockUserData(userId: string): User | null {
   return MOCK_USERS.find((u) => u.id === userId) || null;
-}
-
-export function getMockProjects(userId: string): Project[] {
-  // In a real app, filter by userId
-  return MOCK_PROJECTS;
 }
 
 export function getMockChangeRequests(projectId?: string): ChangeRequest[] {

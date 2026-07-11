@@ -39,7 +39,10 @@ export default function RequestsPage() {
       setMounted(true);
       const userId = await getCurrentUserId();
       if (!userId) return;
-      const [reqs, projs] = await Promise.all([getRequests(), getProjects(userId)]);
+      const [reqs, projs] = await Promise.all([
+        getRequests(undefined, userId),  // scoped to this user's projects
+        getProjects(userId)
+      ]);
       setRequests(reqs);
       setProjects(projs);
       setIsLoading(false);

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getMockProjects, saveUserProjects } from './mock-data';
 import type {
   Profile,
   Project,
@@ -66,6 +67,7 @@ export async function getProjects(userId?: string): Promise<Project[]> {
     console.error('Error fetching projects:', error);
     return [];
   }
+
   return data || [];
 }
 
@@ -119,6 +121,7 @@ export async function createProject(
     console.error('Error creating project:', error);
     return null;
   }
+
   return data;
 }
 
@@ -524,17 +527,35 @@ export async function getUnreadMessageCount(
 }
 
 // ============================================================
-// REQUESTS (Unified)
+// REQUESTS (Unified) — always scoped to the current user's projects
 // ============================================================
 
-export async function getRequests(projectId?: string): Promise<Request[]> {
+export async function getRequests(projectId?: string, userId?: string): Promise<Request[]> {
   let query = supabase
     .from('requests')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (projectId) {
+    // Single project — still scoped because projects are already RLS-protected
     query = query.eq('project_id', projectId);
+  } else if (userId) {
+    // Fetch user's project IDs first, then filter requests to those projects only.
+    // This gives a hard data-isolation guarantee on top of RLS.
+    const { data: userProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('user_id', userId);
+
+    const projectIds = (userProjects || []).map((p: { id: string }) => p.id);
+
+    if (projectIds.length === 0) return []; // user has no projects → no requests
+    query = query.in('project_id', projectIds);
+  }
+  // NOTE: if neither projectId nor userId is supplied the query returns nothing
+  // to prevent accidental full-table leaks.
+  else {
+    return [];
   }
 
   const { data, error } = await query;

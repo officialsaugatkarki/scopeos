@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Bell, X, AlertCircle, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getRequests } from '@/lib/database';
+import { getCurrentUserId } from '@/lib/auth';
 import type { Request } from '@/lib/supabase';
 
 export default function NotificationCenter() {
@@ -13,7 +14,14 @@ export default function NotificationCenter() {
   const [activeTab, setActiveTab] = useState<'all' | 'scope'>('all');
 
   useEffect(() => {
-    getRequests().then(data => setRequests(data.slice(0, 20)));
+    const load = async () => {
+      const userId = await getCurrentUserId();
+      if (!userId) return;
+      // Always scope notifications to this user's own requests
+      const data = await getRequests(undefined, userId);
+      setRequests(data.slice(0, 20));
+    };
+    load();
   }, []);
 
   const notifications = requests.map(req => ({
