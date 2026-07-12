@@ -3,35 +3,57 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
 
 // Helper function to send email via EmailJS REST API
+// Called server-side only — private key is never exposed to the browser
 async function sendEmailJSOtp(email: string, otp: string) {
-  const serviceId = process.env.EMAILJS_SERVICE_ID || '';
-  const templateId = process.env.EMAILJS_TEMPLATE_ID || '';
-  const publicKey = process.env.EMAILJS_PUBLIC_KEY || '';
-  const privateKey = process.env.EMAILJS_PRIVATE_KEY || '';
+  const serviceId   = process.env.EMAILJS_SERVICE_ID;
+  const templateId  = process.env.EMAILJS_TEMPLATE_ID;
+  const publicKey   = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey  = process.env.EMAILJS_PRIVATE_KEY;
+
+  // Fail fast with a clear description of which variable is missing
+  const missing = [
+    !serviceId  && 'EMAILJS_SERVICE_ID',
+    !templateId && 'EMAILJS_TEMPLATE_ID',
+    !publicKey  && 'EMAILJS_PUBLIC_KEY',
+    !privateKey && 'EMAILJS_PRIVATE_KEY',
+  ].filter(Boolean);
+
+  if (missing.length > 0) {
+    const msg = `EmailJS configuration error: missing environment variable(s): ${missing.join(', ')}. Add them to Vercel → Settings → Environment Variables and redeploy.`;
+    console.error('[EmailJS]', msg);
+    throw new Error(msg);
+  }
+
+  const payload = {
+    service_id:  serviceId,
+    template_id: templateId,
+    user_id:     publicKey,      // EmailJS Public Key
+    accessToken: privateKey,     // EmailJS Private Key — required for Strict Mode, stays on server
+    template_params: {
+      to_email: email,
+      email:    email,
+      code:     otp,
+      otp:      otp,
+      otp_code: otp,
+      message:  otp
+    }
+  };
+
+  console.log('[EmailJS] Sending OTP to:', email, '| Service:', serviceId, '| Template:', templateId);
 
   const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-    method: 'POST',
+    method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      service_id: serviceId,
-      template_id: templateId,
-      user_id: publicKey,
-      accessToken: privateKey,
-      template_params: {
-        to_email: email,
-        email: email,
-        code: otp,
-        otp: otp,
-        otp_code: otp,
-        message: otp
-      }
-    })
+    body:    JSON.stringify(payload)
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`EmailJS Error: ${text}`);
+    console.error('[EmailJS] REST API error response:', text);
+    throw new Error(`EmailJS failed (HTTP ${res.status}): ${text}`);
   }
+
+  console.log('[EmailJS] OTP sent successfully to:', email);
 }
 
 // Helper to generate a 6-digit random code
