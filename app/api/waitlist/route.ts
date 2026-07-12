@@ -5,10 +5,11 @@ import crypto from 'crypto';
 // Helper function to send email via EmailJS REST API
 // Called server-side only — private key is never exposed to the browser
 async function sendEmailJSOtp(email: string, otp: string) {
-  const serviceId   = process.env.EMAILJS_SERVICE_ID;
-  const templateId  = process.env.EMAILJS_TEMPLATE_ID;
-  const publicKey   = process.env.EMAILJS_PUBLIC_KEY;
-  const privateKey  = process.env.EMAILJS_PRIVATE_KEY;
+  // Make it bulletproof: check both standard and NEXT_PUBLIC_ variants in case Vercel was misconfigured
+  const serviceId   = process.env.EMAILJS_SERVICE_ID || process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+  const templateId  = process.env.EMAILJS_TEMPLATE_ID || process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+  const publicKey   = process.env.EMAILJS_PUBLIC_KEY || process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+  const privateKey  = process.env.EMAILJS_PRIVATE_KEY || process.env.NEXT_PUBLIC_EMAILJS_PRIVATE_KEY;
 
   // Fail fast with a clear description of which variable is missing
   const missing = [
