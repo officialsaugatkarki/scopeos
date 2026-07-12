@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
+import emailjs, { EmailJSResponseStatus } from '@emailjs/nodejs';
 
 // Helper function to send email via EmailJS REST API
 // Called server-side only — private key is never exposed to the browser
 async function sendEmailJSOtp(email: string, otp: string) {
-  // Make it bulletproof: check both standard and NEXT_PUBLIC_ variants in case Vercel was misconfigured
-  const serviceId   = process.env.EMAILJS_SERVICE_ID || process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-  const templateId  = process.env.EMAILJS_TEMPLATE_ID || process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
-  const publicKey   = process.env.EMAILJS_PUBLIC_KEY || process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-  const privateKey  = process.env.EMAILJS_PRIVATE_KEY || process.env.NEXT_PUBLIC_EMAILJS_PRIVATE_KEY;
+  // Server-side only variables
+  const serviceId   = process.env.EMAILJS_SERVICE_ID;
+  const templateId  = process.env.EMAILJS_TEMPLATE_ID;
+  const publicKey   = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey  = process.env.EMAILJS_PRIVATE_KEY;
 
-  // Fail fast with a clear description of which variable is missing
+  // 1. Pre-flight Debugging Log
+  console.log('[EmailJS Debug] Init params:', JSON.stringify({
+    serviceId,
+    templateId,
+    publicKeyLoaded: !!publicKey,
+    privateKeyLoaded: !!privateKey,
+    privateKeyLength: privateKey ? privateKey.length : 0,
+  }));
+
+  // Fail fast with descriptive error
   const missing = [
     !serviceId  && 'EMAILJS_SERVICE_ID',
     !templateId && 'EMAILJS_TEMPLATE_ID',
@@ -20,41 +30,58 @@ async function sendEmailJSOtp(email: string, otp: string) {
   ].filter(Boolean);
 
   if (missing.length > 0) {
-    const msg = `EmailJS configuration error: missing environment variable(s): ${missing.join(', ')}. Add them to Vercel → Settings → Environment Variables and redeploy.`;
-    console.error('[EmailJS]', msg);
+    const msg = `Missing ${missing.join(', ')}. Add them to Vercel → Settings → Environment Variables.`;
+    console.error('[EmailJS Missing Env]', msg);
     throw new Error(msg);
   }
 
-  const payload = {
-    service_id:  serviceId,
-    template_id: templateId,
-    user_id:     publicKey,      // EmailJS Public Key
-    accessToken: privateKey,     // EmailJS Private Key — required for Strict Mode, stays on server
-    template_params: {
-      to_email: email,
-      email:    email,
-      code:     otp,
-      otp:      otp,
-      otp_code: otp,
-      message:  otp
-    }
+  const templateParams = {
+    to_email: email,
+    email:    email,
+    code:     otp,
+    otp:      otp,
+    otp_code: otp,
+    message:  otp
   };
 
-  console.log('[EmailJS] Sending OTP to:', email, '| Service:', serviceId, '| Template:', templateId);
+  try {
+    // 2. Official SDK call (Server-Side only)
+    const response = await emailjs.send(
+      serviceId as string,
+      templateId as string,
+      templateParams,
+      {
+        publicKey: publicKey,
+        privateKey: privateKey,
+      }
+    );
 
-  const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(payload)
-  });
+    // 3. Post-flight Success Log
+    console.log('[EmailJS Success] Status:', response.status);
+    console.log('[EmailJS Success] Response Body:', response.text);
+    console.log('[EmailJS Success] Payload sent for email:', email);
+  } catch (err: any) {
+    // 4. Post-flight Error Log
+    if (err instanceof EmailJSResponseStatus) {
+      console.error('[EmailJS Error] HTTP Status:', err.status);
+      console.error('[EmailJS Error] Full Error:', err.text);
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('[EmailJS] REST API error response:', text);
-    throw new Error(`EmailJS failed (HTTP ${res.status}): ${text}`);
+      if (err.text.includes('Strict Mode')) {
+        throw new Error(`Strict Mode authentication failed: ${err.text}`);
+      } else if (err.text.includes('service is not found')) {
+        throw new Error(`Invalid Service ID: ${err.text}`);
+      } else if (err.text.includes('Template not found')) {
+        throw new Error(`Invalid Template ID: ${err.text}`);
+      } else if (err.status === 403) {
+        throw new Error(`EmailJS endpoint rejected payload (HTTP 403): ${err.text}`);
+      } else {
+        throw new Error(`EmailJS failed (HTTP ${err.status}): ${err.text}`);
+      }
+    }
+    
+    console.error('[EmailJS Unknown Error]', err);
+    throw new Error(`EmailJS encountered an unexpected error: ${err.message || 'Unknown'}`);
   }
-
-  console.log('[EmailJS] OTP sent successfully to:', email);
 }
 
 // Helper to generate a 6-digit random code
