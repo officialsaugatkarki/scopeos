@@ -34,7 +34,7 @@ export function PortalHeader({ onMenuToggle }: PortalHeaderProps) {
       <div className="flex items-center gap-4 min-w-0">
         <button
           onClick={onMenuToggle}
-          className="p-2 rounded-lg text-[#94A3B8] hover:text-[#1E3058] hover:bg-slate-100 transition-colors md:hidden flex-shrink-0"
+          className="p-3 w-11 h-11 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#1E3058] hover:bg-slate-100 transition-colors md:hidden flex-shrink-0"
         >
           <Menu size={20} />
         </button>

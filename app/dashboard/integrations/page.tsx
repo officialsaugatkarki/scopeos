@@ -138,7 +138,7 @@ export default function IntegrationsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="flex w-full overflow-x-auto scrollbar-none justify-start rounded-xl p-1">
           <TabsTrigger value="all">All Integrations</TabsTrigger>
           <TabsTrigger value="connected">
             Connected ({connectedIntegrations.length})
@@ -158,7 +158,7 @@ export default function IntegrationsPage() {
 
         <TabsContent value="connected" className="mt-6">
           {connectedIntegrations.length === 0 ? (
-            <Card className="p-12 text-center">
+            <Card className="p-6 md:p-12 text-center">
               <p className="text-muted-foreground mb-4">
                 No integrations connected yet
               </p>
@@ -180,7 +180,7 @@ export default function IntegrationsPage() {
 
         <TabsContent value="available" className="mt-6">
           {availableIntegrations.length === 0 ? (
-            <Card className="p-12 text-center">
+            <Card className="p-6 md:p-12 text-center">
               <p className="text-muted-foreground">
                 All available integrations are already connected
               </p>

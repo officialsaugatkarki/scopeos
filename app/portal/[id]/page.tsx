@@ -153,7 +153,7 @@ export default function ProjectPortalPage() {
       {activeTab === 'view' && (
         <div className="space-y-4">
           {requests.length === 0 ? (
-            <Card className="glass-card rounded-xl p-12 text-center">
+            <Card className="glass-card rounded-xl p-6 md:p-12 text-center">
               <p className="text-white/30 mb-4">No previous requests yet</p>
               <Button onClick={() => setActiveTab('submit')} className="btn-gradient text-white border-0 rounded-xl">Submit Your First Request</Button>
             </Card>

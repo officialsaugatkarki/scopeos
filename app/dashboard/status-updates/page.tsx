@@ -98,7 +98,7 @@ Let me know if you have questions!`;
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="flex w-full overflow-x-auto scrollbar-none justify-start rounded-xl p-1">
           <TabsTrigger value="upcoming">Upcoming Updates</TabsTrigger>
           <TabsTrigger value="history">Update History</TabsTrigger>
         </TabsList>
@@ -106,7 +106,7 @@ Let me know if you have questions!`;
         {/* UPCOMING UPDATES */}
         <TabsContent value="upcoming" className="space-y-4">
           {upcomingUpdates.length === 0 ? (
-            <Card className="p-12 text-center">
+            <Card className="p-6 md:p-12 text-center">
               <p className="text-muted-foreground">No upcoming updates scheduled</p>
             </Card>
           ) : (

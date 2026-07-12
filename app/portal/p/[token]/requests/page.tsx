@@ -147,7 +147,7 @@ export default function PortalRequestsPage() {
 
       {/* Results */}
       {filteredRequests.length === 0 ? (
-        <Card className="glass-card rounded-xl p-12 text-center">
+        <Card className="glass-card rounded-xl p-6 md:p-12 text-center">
           <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
             <FileText className="w-8 h-8 text-white/20" />
           </div>

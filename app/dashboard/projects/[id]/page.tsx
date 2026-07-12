@@ -59,7 +59,7 @@ export default function ProjectDetailPage() {
         <Button variant="outline" onClick={() => router.back()} className="gap-2 border-white/[0.06] bg-white/[0.02] text-white/60">
           <ArrowLeft className="w-4 h-4" /> Back
         </Button>
-        <Card className="glass-card rounded-xl p-12 text-center">
+        <Card className="glass-card rounded-xl p-6 md:p-12 text-center">
           <p className="text-white/30">Project not found</p>
         </Card>
       </div>
@@ -144,11 +144,11 @@ export default function ProjectDetailPage() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white/[0.03] border border-white/[0.06] rounded-xl">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="requests">Requests ({totalRequests})</TabsTrigger>
-          <TabsTrigger value="portal">Client Portal</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="flex w-full bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-x-auto scrollbar-none p-1 justify-start">
+          <TabsTrigger value="overview" className="text-white/70 data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-lg transition-all">Overview</TabsTrigger>
+          <TabsTrigger value="requests" className="text-white/70 data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-lg transition-all">Requests ({totalRequests})</TabsTrigger>
+          <TabsTrigger value="portal" className="text-white/70 data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-lg transition-all">Client Portal</TabsTrigger>
+          <TabsTrigger value="settings" className="text-white/70 data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-lg transition-all">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-6">
@@ -213,7 +213,7 @@ export default function ProjectDetailPage() {
 
         <TabsContent value="requests" className="space-y-4 mt-6">
           {requests.length === 0 ? (
-            <Card className="glass-card rounded-xl p-12 text-center">
+            <Card className="glass-card rounded-xl p-6 md:p-12 text-center">
               <TrendingUp className="w-10 h-10 text-white/10 mx-auto mb-3" />
               <p className="text-white/30">No requests yet</p>
               <p className="text-xs text-white/20 mt-1">Send your client the portal link to start receiving requests</p>

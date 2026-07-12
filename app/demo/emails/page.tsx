@@ -152,7 +152,7 @@ export default function EmailsDemoPage() {
           const template = Object.values(emailTemplates).find(t => t.id === id);
           setSelectedTemplate(template || null);
         }}>
-          <TabsList className="w-full grid grid-cols-4 lg:grid-cols-8">
+          <TabsList className="flex w-full overflow-x-auto scrollbar-none justify-start rounded-xl p-1">
             {Object.values(emailTemplates).map((template) => (
               <TabsTrigger key={template.id} value={template.id} className="text-xs">
                 {template.name.split(' ')[0]}

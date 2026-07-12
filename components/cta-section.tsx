@@ -7,7 +7,7 @@ export default function CtaSection() {
     <section className="py-24 px-6 relative overflow-hidden">
       <div className="max-w-5xl mx-auto relative z-10">
         <div
-          className="rounded-[2.5rem] p-12 md:p-20 text-center relative overflow-hidden"
+          className="rounded-[2.5rem] p-6 md:p-12 md:p-20 text-center relative overflow-hidden"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(59,130,246,0.1) 100%)',
             backdropFilter: 'blur(24px)',

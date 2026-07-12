@@ -38,7 +38,7 @@ export function HelpModal({ isOpen, onOpenChange }: HelpModalProps) {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="flex w-full overflow-x-auto scrollbar-none justify-start rounded-xl p-1">
             <TabsTrigger value="shortcuts" className="flex items-center gap-2">
               <Keyboard size={16} />
               <span className="hidden sm:inline">Shortcuts</span>

@@ -41,7 +41,7 @@ export function DashboardNavbar({ title = 'Dashboard' }: DashboardNavbarProps) {
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-2 md:gap-4">
         <NotificationCenter />
         
         <div className="h-8 w-px bg-white/10 hidden sm:block" />

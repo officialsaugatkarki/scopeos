@@ -36,7 +36,7 @@ export function PortalBottomNav({ onMorePress }: PortalBottomNavProps) {
   const isMoreActive = ['/project', '/files', '/settings', '/messages'].some(p => pathname.startsWith(`${basePath}${p}`));
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl border-t border-[#E2E8F4] z-50 md:hidden shadow-[0_-4px_24px_rgba(13,21,38,0.04)]">
+    <nav className="fixed bottom-0 left-0 right-0 min-h-[4rem] h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-white/95 backdrop-blur-xl border-t border-[#E2E8F4] z-50 md:hidden shadow-[0_-4px_24px_rgba(13,21,38,0.04)]">
       <div className="flex h-full items-center justify-around px-2">
         {navItems.map((item) => {
           const Icon = item.icon;

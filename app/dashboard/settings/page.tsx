@@ -134,7 +134,7 @@ export default function SettingsPage() {
 
       {/* TABS CONTAINER */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-white/10 p-1 rounded-xl mb-6 border border-white/10 text-white/70">
+        <TabsList className="flex w-full bg-white/10 p-1 rounded-xl mb-6 border border-white/10 text-white/70 overflow-x-auto scrollbar-none justify-start">
           <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:text-[#0D1526] rounded-lg text-sm font-medium transition-all">Profile</TabsTrigger>
           <TabsTrigger value="agency" className="data-[state=active]:bg-white data-[state=active]:text-[#0D1526] rounded-lg text-sm font-medium transition-all">Agency</TabsTrigger>
           <TabsTrigger value="billing" className="data-[state=active]:bg-white data-[state=active]:text-[#0D1526] rounded-lg text-sm font-medium transition-all">Billing</TabsTrigger>

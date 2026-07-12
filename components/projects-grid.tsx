@@ -58,7 +58,7 @@ export function ProjectsGrid() {
       </div>
 
       {projects.length === 0 ? (
-        <Card className="bg-white border border-[#E2E8F4] rounded-2xl p-12 text-center shadow-sm">
+        <Card className="bg-white border border-[#E2E8F4] rounded-2xl p-6 md:p-12 text-center shadow-sm">
           <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4">
             <FolderOpen className="w-6 h-6 text-[#94A3B8]" />
           </div>
@@ -87,11 +87,11 @@ export function ProjectsGrid() {
                     </div>
                     <div className="flex items-center gap-2">
                       {project.portal_enabled && (
-                        <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+                        <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">
                           <Globe className="w-3 h-3 mr-1 inline-block" /> Portal
                         </Badge>
                       )}
-                      <Badge className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${
+                      <Badge className={`text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${
                         project.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                         : project.status === 'completed' ? 'bg-blue-50 text-[#2563EB] border border-blue-100'
                         : 'bg-amber-50 text-amber-600 border border-amber-100'
@@ -107,15 +107,15 @@ export function ProjectsGrid() {
                   <div className="grid grid-cols-3 gap-2 pt-5 border-t border-[#E2E8F4]">
                     <div className="flex flex-col">
                       <span className="text-xl font-black text-[#0D1526]">{totalRequests}</span>
-                      <span className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">Reqs</span>
+                      <span className="text-[11px] sm:text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">Reqs</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xl font-black text-[#2563EB]">{changeRequests}</span>
-                      <span className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">Changes</span>
+                      <span className="text-[11px] sm:text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">Changes</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xl font-black text-amber-500">{pendingApprovals}</span>
-                      <span className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">Pending</span>
+                      <span className="text-[11px] sm:text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">Pending</span>
                     </div>
                   </div>
                 </div>

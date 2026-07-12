@@ -16,15 +16,15 @@ const decisionLabel: Record<string, string> = {
 };
 
 const decisionColor: Record<string, string> = {
-  'in-scope': 'bg-emerald-50 text-emerald-600 border-emerald-200',
-  'out-of-scope': 'bg-red-50 text-red-600 border-red-200',
-  'needs-info': 'bg-amber-50 text-amber-600 border-amber-200',
+  'in-scope': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'out-of-scope': 'bg-red-500/10 text-red-400 border-red-500/20',
+  'needs-info': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
 };
 
 const statusBorderColor: Record<string, string> = {
-  'out-of-scope': '#ef4444',
-  'in-scope': '#10b981',
-  'needs-info': '#f59e0b',
+  'out-of-scope': '#f87171',
+  'in-scope': '#34d399',
+  'needs-info': '#fbbf24',
 };
 
 export default function RequestsPage() {
@@ -40,7 +40,7 @@ export default function RequestsPage() {
       const userId = await getCurrentUserId();
       if (!userId) return;
       const [reqs, projs] = await Promise.all([
-        getRequests(undefined, userId),  // scoped to this user's projects
+        getRequests(undefined, userId),
         getProjects(userId)
       ]);
       setRequests(reqs);
@@ -71,14 +71,14 @@ export default function RequestsPage() {
     return (
       <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
         <div>
-          <h1 className="text-2xl font-bold text-[#0D1526] mb-2 tracking-tight">Scope Requests</h1>
-          <p className="text-[#64748B] font-medium">Loading...</p>
+          <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">Scope Requests</h1>
+          <p className="text-white/60 font-medium">Loading...</p>
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map(i => (
-            <Card key={i} className="bg-white border border-[#E2E8F4] rounded-2xl p-6 shadow-sm animate-pulse">
-              <div className="h-4 bg-slate-100 rounded w-1/3 mb-3"></div>
-              <div className="h-3 bg-slate-100 rounded w-1/2"></div>
+            <Card key={i} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6 shadow-sm animate-pulse">
+              <div className="h-4 bg-white/5 rounded w-1/3 mb-3"></div>
+              <div className="h-3 bg-white/5 rounded w-1/2"></div>
             </Card>
           ))}
         </div>
@@ -89,26 +89,26 @@ export default function RequestsPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-[#0D1526] mb-1 tracking-tight">Scope Requests</h1>
-        <p className="text-[#64748B] font-medium">All client requests analyzed by ScopeOS AI</p>
+        <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Scope Requests</h1>
+        <p className="text-white/60 font-medium">All client requests analyzed by ScopeOS AI</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-slate-100/50 p-1 rounded-xl shadow-inner mb-6 border border-slate-200">
-          <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#2563EB] font-semibold text-[#64748B]">All ({requests.length})</TabsTrigger>
-          <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#2563EB] font-semibold text-[#64748B]">Pending ({pendingCount})</TabsTrigger>
-          <TabsTrigger value="clarification" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#2563EB] font-semibold text-[#64748B]">Clarification ({clarificationCount})</TabsTrigger>
-          <TabsTrigger value="decided" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#2563EB] font-semibold text-[#64748B]">Decided ({decidedCount})</TabsTrigger>
+        <TabsList className="flex w-full bg-white/[0.02] p-1 rounded-xl shadow-inner mb-6 border border-white/[0.06] overflow-x-auto scrollbar-none justify-start">
+          <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white font-semibold text-white/60 transition-all">All ({requests.length})</TabsTrigger>
+          <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white font-semibold text-white/60 transition-all">Pending ({pendingCount})</TabsTrigger>
+          <TabsTrigger value="clarification" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white font-semibold text-white/60 transition-all">Clarification ({clarificationCount})</TabsTrigger>
+          <TabsTrigger value="decided" className="rounded-lg data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white font-semibold text-white/60 transition-all">Decided ({decidedCount})</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="space-y-4">
           {filteredRequests.length === 0 ? (
-            <Card className="bg-white border border-[#E2E8F4] rounded-2xl p-14 text-center shadow-sm">
-              <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-6 h-6 text-[#2563EB]" />
+            <Card className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6 md:p-14 text-center shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-6 h-6 text-blue-400" />
               </div>
-              <p className="text-[#0D1526] font-semibold mb-1">No requests here yet</p>
-              <p className="text-[#64748B] text-sm">
+              <p className="text-white font-semibold mb-1">No requests here yet</p>
+              <p className="text-white/60 text-sm">
                 {activeTab === 'all'
                   ? 'Requests will appear once clients message through the portal'
                   : 'No requests match this filter'}
@@ -119,11 +119,11 @@ export default function RequestsPage() {
               {filteredRequests.map(request => {
                 const project = projects.find(p => p.id === request.project_id);
                 const decision = request.ai_decision;
-                const borderColor = statusBorderColor[decision] || '#E2E8F4';
+                const borderColor = statusBorderColor[decision] || 'rgba(255,255,255,0.1)';
                 return (
                   <Card
                     key={request.id}
-                    className="bg-white border border-[#E2E8F4] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border-l-4 group cursor-pointer hover:border-r-blue-200 hover:border-y-blue-200"
+                    className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border-l-4 group cursor-pointer hover:bg-white/[0.04]"
                     style={{ borderLeftColor: borderColor }}
                     onClick={() => window.location.href = `/dashboard/requests/${request.id}`}
                   >
@@ -140,18 +140,18 @@ export default function RequestsPage() {
                             : <Clock className="w-5 h-5 text-blue-500" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-[#0D1526] group-hover:text-[#2563EB] text-base leading-snug transition-colors">{request.message}</p>
+                          <p className="font-semibold text-white group-hover:text-blue-400 text-base leading-snug transition-colors">{request.message}</p>
                           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] bg-slate-100 px-2 py-0.5 rounded-md">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-white/60 bg-white/[0.04] px-2 py-0.5 rounded-md">
                               {project ? project.name : 'Unknown project'}
                             </span>
-                            <span className="text-xs text-[#94A3B8]">•</span>
-                            <span className="text-xs font-medium text-[#64748B]">{request.client_id}</span>
-                            <span className="text-xs text-[#94A3B8]">•</span>
-                            <span className="text-xs font-medium text-[#94A3B8]">{formatDate(request.created_at)}</span>
+                            <span className="text-xs text-white/40">•</span>
+                            <span className="text-xs font-medium text-white/60">{request.client_id}</span>
+                            <span className="text-xs text-white/40">•</span>
+                            <span className="text-xs font-medium text-white/40">{formatDate(request.created_at)}</span>
                           </div>
                           {request.reasoning && (
-                            <p className="text-sm text-[#64748B] mt-2 italic line-clamp-2 bg-slate-50 p-2 rounded-lg border border-slate-100">"{request.reasoning}"</p>
+                            <p className="text-sm text-white/60 mt-2 italic line-clamp-2 bg-white/[0.02] p-2 rounded-lg border border-white/[0.06]">"{request.reasoning}"</p>
                           )}
                         </div>
                       </div>
@@ -159,21 +159,21 @@ export default function RequestsPage() {
                       {/* Meta */}
                       <div className="flex md:flex-col gap-2 md:items-end items-center flex-wrap">
                         {decision ? (
-                          <Badge className={`text-[10px] uppercase tracking-wider font-bold border px-2.5 py-0.5 rounded-full ${decisionColor[decision] || 'bg-slate-100 text-[#64748B] border-slate-200'}`}>
+                          <Badge className={`text-[10px] uppercase tracking-wider font-bold border px-2.5 py-0.5 rounded-full ${decisionColor[decision] || 'bg-white/[0.04] text-white/60 border-white/[0.06]'}`}>
                             {decisionLabel[decision] || decision}
                           </Badge>
                         ) : (
-                          <Badge className="text-[10px] uppercase tracking-wider font-bold bg-slate-100 text-[#64748B] border border-slate-200 px-2.5 py-0.5 rounded-full">Pending</Badge>
+                          <Badge className="text-[10px] uppercase tracking-wider font-bold bg-white/[0.04] text-white/60 border border-white/[0.06] px-2.5 py-0.5 rounded-full">Pending</Badge>
                         )}
                         {request.estimated_impact && (
-                          <span className="text-xs font-semibold text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
+                          <span className="text-xs font-semibold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">
                             {request.estimated_impact}
                           </span>
                         )}
                         <span className={`text-[10px] uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full border ${
                           request.status === 'pending'
-                            ? 'bg-blue-50 text-[#2563EB] border-blue-200'
-                            : 'bg-slate-100 text-[#64748B] border-slate-200'
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                            : 'bg-white/[0.04] text-white/60 border-white/[0.06]'
                         }`}>
                           {request.status}
                         </span>

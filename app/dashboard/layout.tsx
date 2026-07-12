@@ -36,8 +36,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       <div className="flex-1 flex min-w-0 flex-col overflow-hidden relative">
         <DashboardNavbar />
-        <main className="flex-1 overflow-auto overflow-x-hidden pb-20 md:pb-0">
-          <div className="w-full max-w-7xl mx-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 pb-24 md:pb-8 w-full max-w-full">
+          <div className="w-full max-w-7xl mx-auto">
             {children}
           </div>
         </main>

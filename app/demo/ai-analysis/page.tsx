@@ -47,7 +47,7 @@ export default function AIAnalysisDemo() {
       </div>
 
       <Tabs defaultValue="demo" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="flex w-full overflow-x-auto scrollbar-none justify-start rounded-xl p-1">
           <TabsTrigger value="demo">Live Demo</TabsTrigger>
           <TabsTrigger value="all-results">All Analysis Results</TabsTrigger>
         </TabsList>
@@ -116,7 +116,7 @@ export default function AIAnalysisDemo() {
                 suggestedAction: 'CREATE_TASK'
               }} />
             ) : (
-              <Card className="p-12 text-center">
+              <Card className="p-6 md:p-12 text-center">
                 <p className="text-muted-foreground mb-4">Click a request above to view its AI analysis</p>
                 <Button onClick={handleAnalyzeClick}>Analyze Request</Button>
               </Card>

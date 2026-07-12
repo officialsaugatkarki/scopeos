@@ -52,7 +52,7 @@ export function EmailPreviewModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="flex w-full overflow-x-auto scrollbar-none justify-start rounded-xl p-1">
             <TabsTrigger value="preview">Preview</TabsTrigger>
             <TabsTrigger value="edit">Edit</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>

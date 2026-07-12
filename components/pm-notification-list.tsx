@@ -87,7 +87,7 @@ export function PMNotificationList({ projectId }: PMNotificationListProps) {
 
   if (notifications.length === 0) {
     return (
-      <Card className="glass-card rounded-xl p-10 text-center">
+      <Card className="glass-card rounded-xl p-6 md:p-10 text-center">
         <TrendingUp className="w-10 h-10 text-white/10 mx-auto mb-3" />
         <p className="text-white/30 text-sm">No activity yet</p>
         <p className="text-xs text-white/20 mt-1">Requests from the client portal will appear here</p>

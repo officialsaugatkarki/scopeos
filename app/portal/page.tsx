@@ -50,7 +50,7 @@ export default function PortalPage() {
       </div>
 
       {projects.length === 0 ? (
-        <Card className="glass-card rounded-xl p-12 text-center">
+        <Card className="glass-card rounded-xl p-6 md:p-12 text-center">
           <p className="text-white/30 mb-4">No projects available</p>
         </Card>
       ) : (

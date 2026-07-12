@@ -44,7 +44,7 @@ export default function EmailsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="flex w-full overflow-x-auto scrollbar-none justify-start rounded-xl p-1">
           <TabsTrigger value="templates">Email Templates</TabsTrigger>
           <TabsTrigger value="notifications">PM Notifications</TabsTrigger>
           <TabsTrigger value="history">Email History</TabsTrigger>

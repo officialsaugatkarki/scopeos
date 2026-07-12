@@ -60,7 +60,7 @@ export default function FeaturesSection() {
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
           }}
         >
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-6 md:p-12 items-center">
             {/* Left: Content */}
             <div>
               <div className="text-[11px] font-bold tracking-widest text-blue-400 uppercase mb-5">

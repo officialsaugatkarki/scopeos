@@ -61,7 +61,7 @@ export default function RequestDetailPage() {
   if (!request) {
     return (
       <div className="p-6">
-        <Card className="glass-card rounded-xl p-8 text-center">
+        <Card className="glass-card rounded-xl p-6 md:p-8 text-center">
           <p className="text-white/30 mb-4">Request not found</p>
           <Button onClick={() => router.back()} variant="outline" className="border-white/[0.06] text-white/60">Go Back</Button>
         </Card>

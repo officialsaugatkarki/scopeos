@@ -6,7 +6,7 @@ export default function ProblemSolution() {
   return (
     <section className="py-24 px-6 relative z-10">
       <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid md:grid-cols-2 gap-6 md:p-12 lg:gap-20 items-center">
           
           {/* The Problem */}
           <div className="space-y-6">
