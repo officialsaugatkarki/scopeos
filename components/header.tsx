@@ -65,10 +65,10 @@ export default function Header() {
             </Link>
           ) : (
             <Link
-              href="/signup"
+              href="/waitlist"
               className="text-[13px] font-medium px-6 py-2.5 rounded-full transition-all duration-300 bg-white text-black hover:bg-gray-100 shadow-lg"
             >
-              Get Started
+              Join Waitlist
             </Link>
           )}
         </div>
@@ -115,11 +115,11 @@ export default function Header() {
                 </Link>
               ) : (
                 <Link
-                  href="/signup"
+                  href="/waitlist"
                   className="w-full text-center text-sm font-medium text-black py-3 rounded-xl bg-white hover:bg-gray-100 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  Get Started
+                  Join Waitlist
                 </Link>
               )}
             </div>

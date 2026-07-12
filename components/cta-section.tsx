@@ -28,10 +28,10 @@ export default function CtaSection() {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
             <a
-              href="/signup"
+              href="/waitlist"
               className="bg-white text-black px-8 py-4 rounded-full font-bold text-[15px] transition-all hover:bg-gray-100 hover:shadow-xl w-full sm:w-auto"
             >
-              Start Your Free Trial
+              Join Waitlist
             </a>
             <a
               href="mailto:demo@scopeos.ai"

@@ -91,10 +91,10 @@ export default function HeroSection() {
             } mb-12`}
           >
             <a
-              href="/signup"
+              href="/waitlist"
               className="bg-white text-black px-8 py-3.5 rounded-full font-medium text-[15px] transition-all hover:bg-gray-100 hover:shadow-lg w-full sm:w-auto"
             >
-              Start Free Trial
+              Join Waitlist
             </a>
             <a
               href="mailto:demo@scopeos.ai"

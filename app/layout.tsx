@@ -14,6 +14,7 @@ const caveat = Caveat({ subsets: ["latin"], variable: "--font-caveat" });
 
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://scopeos.ai'),
   title: 'ScopeOS - Stop Losing Money on Scope Creep',
   description: 'AI-powered scope management tool for dev agencies. Turn client chaos into clear, billable tasks—automatically.',
   icons: {

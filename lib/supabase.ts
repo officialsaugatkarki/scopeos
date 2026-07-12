@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 let _supabase: SupabaseClient | null = null;
 
@@ -19,6 +20,21 @@ export const supabase: SupabaseClient = (() => {
   }
   return _supabase;
 })();
+
+/**
+ * Server-only admin client that bypasses Row Level Security.
+ * NEVER expose this to the browser — only use in API routes.
+ */
+export function getSupabaseAdmin(): SupabaseClient {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    // Fallback during build time
+    return createClient('https://placeholder.supabase.co', 'placeholder-key');
+  }
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  });
+}
+
 
 // ============================================================
 // Type definitions matching the database schema
@@ -39,8 +55,31 @@ export interface Profile {
   date_format: string;
   language: string;
   onboarding_completed: boolean;
+  is_admin?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  role?: string;
+  country?: string;
+  team_size?: string;
+  challenge?: string;
+  email_verified: boolean;
+  phone_verified: boolean;
+  referral_code: string;
+  referred_by?: string;
+  referral_count: number;
+  position: number;
+  batch: number;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  approved_at?: string;
 }
 
 export interface Project {
