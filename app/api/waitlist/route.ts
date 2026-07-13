@@ -1,86 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
-import emailjs, { EmailJSResponseStatus } from '@emailjs/nodejs';
+import { resend } from '@/lib/resend';
+import { generateOtpTemplate } from '@/lib/email';
 
-// Helper function to send email via EmailJS REST API
-// Called server-side only — private key is never exposed to the browser
-async function sendEmailJSOtp(email: string, otp: string) {
-  // Server-side only variables
-  const serviceId   = process.env.EMAILJS_SERVICE_ID;
-  const templateId  = process.env.EMAILJS_TEMPLATE_ID;
-  const publicKey   = process.env.EMAILJS_PUBLIC_KEY;
-  const privateKey  = process.env.EMAILJS_PRIVATE_KEY;
-
-  // 1. Pre-flight Debugging Log
-  console.log('[EmailJS Debug] Init params:', JSON.stringify({
-    serviceId,
-    templateId,
-    publicKeyLoaded: !!publicKey,
-    privateKeyLoaded: !!privateKey,
-    privateKeyLength: privateKey ? privateKey.length : 0,
-  }));
-
-  // Fail fast with descriptive error
-  const missing = [
-    !serviceId  && 'EMAILJS_SERVICE_ID',
-    !templateId && 'EMAILJS_TEMPLATE_ID',
-    !publicKey  && 'EMAILJS_PUBLIC_KEY',
-    !privateKey && 'EMAILJS_PRIVATE_KEY',
-  ].filter(Boolean);
-
-  if (missing.length > 0) {
-    const msg = `Missing ${missing.join(', ')}. Add them to Vercel → Settings → Environment Variables.`;
-    console.error('[EmailJS Missing Env]', msg);
-    throw new Error(msg);
+/**
+ * sendOtpEmail
+ * Sends an OTP verification email via Resend.
+ * Server-side only — never call from client components.
+ */
+async function sendOtpEmail(email: string, otp: string): Promise<void> {
+  // 1. Validate environment
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('[sendOtpEmail] Missing RESEND_API_KEY. Add it to Vercel → Settings → Environment Variables.');
+  }
+  if (!process.env.EMAIL_FROM) {
+    throw new Error('[sendOtpEmail] Missing EMAIL_FROM. Add it to Vercel → Settings → Environment Variables.');
+  }
+  if (!email || !email.includes('@')) {
+    throw new Error('[sendOtpEmail] Invalid recipient email address.');
   }
 
-  const templateParams = {
-    to_email: email,
-    email:    email,
-    code:     otp,
-    otp:      otp,
-    otp_code: otp,
-    message:  otp
-  };
+  // 2. Send via Resend SDK
+  const { data, error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: 'Verify your ScopeOS account',
+    html: generateOtpTemplate(otp),
+  });
 
-  try {
-    // 2. Official SDK call (Server-Side only)
-    const response = await emailjs.send(
-      serviceId as string,
-      templateId as string,
-      templateParams,
-      {
-        publicKey: publicKey,
-        privateKey: privateKey,
-      }
-    );
+  // 3. Handle Resend API errors
+  if (error) {
+    console.error('[sendOtpEmail] Resend API error:', JSON.stringify(error));
+    throw new Error(`Email delivery failed: ${error.message}`);
+  }
 
-    // 3. Post-flight Success Log
-    console.log('[EmailJS Success] Status:', response.status);
-    console.log('[EmailJS Success] Response Body:', response.text);
-    console.log('[EmailJS Success] Payload sent for email:', email);
-  } catch (err: any) {
-    // 4. Post-flight Error Log
-    if (err instanceof EmailJSResponseStatus) {
-      console.error('[EmailJS Error] HTTP Status:', err.status);
-      console.error('[EmailJS Error] Full Error:', err.text);
-
-      if (err.text.includes('Strict Mode')) {
-        throw new Error(`Strict Mode authentication failed: ${err.text}`);
-      } else if (err.text.includes('service is not found')) {
-        throw new Error(`Invalid Service ID: ${err.text}`);
-      } else if (err.text.includes('Template not found')) {
-        throw new Error(`Invalid Template ID: ${err.text}`);
-      } else if (err.status === 403) {
-        throw new Error(`EmailJS endpoint rejected payload (HTTP 403): ${err.text}`);
-      } else {
-        throw new Error(`EmailJS failed (HTTP ${err.status}): ${err.text}`);
-      }
-    }
-    
-    console.error('[EmailJS Unknown Error]', err);
-    throw new Error(`EmailJS encountered an unexpected error: ${err.message || 'Unknown'}`);
+  // 4. Dev-only success log — never runs in production
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[sendOtpEmail] ✓ Sent to: ${email} | Message ID: ${data?.id}`);
   }
 }
 
@@ -149,7 +106,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
         }
 
-        await sendEmailJSOtp(email, newOtp);
+        await sendOtpEmail(email, newOtp);
         return NextResponse.json({ success: true, data: existing }, { status: 200 });
       }
 
@@ -196,8 +153,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to join waitlist. ' + insertError.message }, { status: 500 });
     }
 
-    // Send OTP via EmailJS
-    await sendEmailJSOtp(email, newOtp);
+    // Send OTP via Resend
+    await sendOtpEmail(email, newOtp);
 
     return NextResponse.json({ success: true, data: newEntry }, { status: 200 });
 
