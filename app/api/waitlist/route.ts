@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
-import { resend } from '@/lib/resend';
+import { getResendClient } from '@/lib/resend';
 import { generateOtpTemplate } from '@/lib/email';
 
 /**
@@ -10,10 +10,7 @@ import { generateOtpTemplate } from '@/lib/email';
  * Server-side only — never call from client components.
  */
 async function sendOtpEmail(email: string, otp: string): Promise<void> {
-  // 1. Validate environment
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error('[sendOtpEmail] Missing RESEND_API_KEY. Add it to Vercel → Settings → Environment Variables.');
-  }
+  // 1. Validate environment (getResendClient() also validates RESEND_API_KEY)
   if (!process.env.EMAIL_FROM) {
     throw new Error('[sendOtpEmail] Missing EMAIL_FROM. Add it to Vercel → Settings → Environment Variables.');
   }
@@ -21,8 +18,8 @@ async function sendOtpEmail(email: string, otp: string): Promise<void> {
     throw new Error('[sendOtpEmail] Invalid recipient email address.');
   }
 
-  // 2. Send via Resend SDK
-  const { data, error } = await resend.emails.send({
+  // 2. Send via Resend SDK (lazy client — safe at build time)
+  const { data, error } = await getResendClient().emails.send({
     from: process.env.EMAIL_FROM,
     to: email,
     subject: 'Verify your ScopeOS account',
