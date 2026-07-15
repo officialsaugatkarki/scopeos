@@ -3,22 +3,14 @@
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [hasAccount, setHasAccount] = useState<boolean | null>(null)
 
   useEffect(() => {
-    // Check scroll
-    const handleScroll = () => setScrolled(window.scrollY > 20)
+    const handleScroll = () => setScrolled(window.scrollY > 150)
     window.addEventListener('scroll', handleScroll, { passive: true })
-    
-    // Check if user has an account
-    const storedHasAccount = localStorage.getItem('hasAccount') === 'true'
-    setHasAccount(storedHasAccount)
-
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -29,103 +21,94 @@ export default function Header() {
     { href: '/blog', label: 'Blog' },
   ]
 
+  // This header only appears when scrolled past the hero section
   return (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-[#0B1224]/80 backdrop-blur-md py-4' : 'py-6'}`}>
-      <div className="max-w-[1400px] mx-auto px-6 sm:px-8 flex items-center justify-between">
-        
-        {/* Left: Logo */}
-        <Link href="/" className="flex items-center gap-3 shrink-0 group">
-          <Image src="/assets/logo.png" alt="ScopeOS" width={32} height={32} className="rounded-lg object-contain" />
-          <span className="font-semibold text-white text-[16px] tracking-tight">
-            ScopeOS
+    <header
+      className={`fixed top-4 inset-x-0 z-50 flex justify-center transition-all duration-500 ${
+        scrolled
+          ? 'opacity-100 translate-y-0 pointer-events-auto'
+          : 'opacity-0 -translate-y-8 pointer-events-none'
+      }`}
+    >
+      <div className="bg-[#FAF8F5]/90 backdrop-blur-xl border border-black/5 shadow-2xl rounded-full px-4 py-2 flex items-center gap-6">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-1.5 shrink-0">
+          <span className="font-black text-lg tracking-tight text-[#0B1220] leading-none">
+            Scope<span className="text-[#3B82F6]">OS</span>
           </span>
         </Link>
 
-        {/* Center: Text Links */}
-        <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-1">
           {navLinks.map((link, i) => (
             <Link
               key={i}
               href={link.href}
-              className="text-[13px] transition-all duration-300 font-medium text-white/70 hover:text-white"
+              className="text-sm font-bold text-[#0B1220]/60 hover:text-[#0B1220] transition-colors duration-200 px-3 py-1.5 rounded-full hover:bg-black/5"
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        {/* Right: Smart Auth Buttons */}
-        <div className="hidden md:flex items-center gap-6 shrink-0 min-w-[120px] justify-end">
-          {hasAccount === null ? null : hasAccount ? (
-            <Link
-              href="/login"
-              className="text-[13px] font-medium px-6 py-2.5 rounded-full transition-all duration-300 bg-white text-black hover:bg-gray-100 shadow-lg"
-            >
-              Login
-            </Link>
-          ) : (
-            <Link
-              href="/waitlist"
-              className="text-[13px] font-medium px-6 py-2.5 rounded-full transition-all duration-300 bg-white text-black hover:bg-gray-100 shadow-lg"
-            >
-              Join Waitlist
-            </Link>
-          )}
+        {/* Desktop CTA */}
+        <div className="hidden md:flex items-center gap-2 pl-2 border-l border-black/5">
+          <Link
+            href="/waitlist"
+            className="text-sm font-bold px-5 py-2.5 rounded-full bg-[#0B1220] text-white hover:bg-[#0F172A] hover:scale-105 transition-all duration-300 shadow-md"
+          >
+            Join Waitlist
+          </Link>
         </div>
 
         {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden p-2 rounded-lg text-white"
+          className="md:hidden relative w-8 h-8 rounded-full flex items-center justify-center text-[#0B1220] hover:bg-black/5 transition-all duration-200"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Mobile Navigation */}
-      {isOpen && (
-        <div
-          className="md:hidden absolute top-20 left-4 right-4 rounded-2xl overflow-hidden p-4"
-          style={{
-            background: 'rgba(13, 21, 38, 0.95)',
-            backdropFilter: 'blur(24px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.3)',
-          }}
-        >
-          <nav className="flex flex-col space-y-1">
+      {/* Mobile Navigation Dropdown */}
+      <div
+        className={`md:hidden absolute top-full mt-2 w-[90%] max-w-[300px] transition-all duration-400 ${
+          isOpen
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 -translate-y-4 pointer-events-none'
+        }`}
+      >
+        <div className="rounded-2xl overflow-hidden bg-[#FAF8F5]/95 backdrop-blur-xl border border-black/5 shadow-2xl">
+          <nav className="flex flex-col p-2">
             {navLinks.map((link, i) => (
               <Link
                 key={i}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="text-white/80 hover:text-white hover:bg-white/10 transition-colors py-3 px-4 rounded-xl text-sm font-medium"
+                className="text-[#0B1220]/70 hover:text-[#0B1220] hover:bg-black/5 transition-colors py-3 px-4 rounded-xl text-sm font-bold"
               >
                 {link.label}
               </Link>
             ))}
-            <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-white/10">
-              {hasAccount === null ? null : hasAccount ? (
-                <Link
-                  href="/login"
-                  className="w-full text-center text-sm font-medium text-black py-3 rounded-xl bg-white hover:bg-gray-100 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Login
-                </Link>
-              ) : (
-                <Link
-                  href="/waitlist"
-                  className="w-full text-center text-sm font-medium text-black py-3 rounded-xl bg-white hover:bg-gray-100 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Join Waitlist
-                </Link>
-              )}
+            <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-black/5">
+              <Link
+                href="/login"
+                className="w-full text-center text-sm font-bold text-[#0B1220]/70 hover:text-[#0B1220] py-3 rounded-xl hover:bg-black/5 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Login
+              </Link>
+              <Link
+                href="/waitlist"
+                className="w-full text-center text-sm font-bold text-white py-3.5 rounded-xl bg-[#0B1220] hover:bg-[#0F172A] transition-all"
+                onClick={() => setIsOpen(false)}
+              >
+                Join Waitlist
+              </Link>
             </div>
           </nav>
         </div>
-      )}
+      </div>
     </header>
   )
 }
