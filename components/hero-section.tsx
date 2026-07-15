@@ -96,12 +96,12 @@ export default function HeroSection() {
         </header>
 
         {/* ── Sculpted Hero Area ── */}
-        <div className="relative w-full flex-1 rounded-[32px] overflow-hidden bg-[#e5e5e5] min-h-[650px] lg:min-h-[700px]">
+        <div className="relative w-full flex-1 rounded-[32px] overflow-hidden bg-[#e5e5e5] min-h-[650px] lg:min-h-[750px]">
           
           {/* Base Image / Video */}
           <video 
             ref={videoRef}
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className="absolute inset-0 w-full h-full object-cover object-center lg:inset-auto lg:top-1/2 lg:left-1/2 lg:w-[110svh] lg:h-[110svw] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:-rotate-90"
             autoPlay 
             muted 
             loop 
@@ -109,13 +109,12 @@ export default function HeroSection() {
             src="/assets/vid0.mp4"
           />
           {/* Video Overlay for better contrast */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-black/10 to-transparent" />
 
           {/* ── Top Left Panel (Headline) ── */}
-          <div className="absolute top-0 left-0 bg-[#FAF8F5] rounded-br-[40px] pr-12 pb-12 z-10 max-w-[85%] lg:max-w-[70%]">
+          <div className="absolute top-0 left-0 bg-[#FAF8F5] rounded-br-[40px] pr-8 pb-8 lg:pr-12 lg:pb-12 z-10 max-w-[95%] lg:max-w-[70%]">
             <h1 
-              className="font-[800] text-[#0B1220] leading-[1.05] tracking-tight"
-              style={{ fontSize: 'clamp(3rem, 6.5vw, 6rem)' }}
+              className="font-[800] text-[#0B1220] leading-[1.05] tracking-tight text-[2.5rem] sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5.5rem] xl:text-[6.5rem] text-balance"
             >
               Stop Losing Money<br />
               On Scope Creep &amp;<br />
@@ -123,8 +122,8 @@ export default function HeroSection() {
             </h1>
             
             {/* Organic Fillets */}
-            <Fillet position="tl" className="top-0 -right-[40px]" />
-            <Fillet position="tl" className="-bottom-[40px] left-0" />
+            <Fillet position="tl" className="hidden lg:block top-0 -right-[40px]" />
+            <Fillet position="tl" className="hidden lg:block -bottom-[40px] left-0" />
           </div>
 
           {/* ── Top Right Panel (Stat Cards) ── */}
@@ -161,22 +160,22 @@ export default function HeroSection() {
           </div>
 
           {/* ── Bottom Left Panel (CTA & Text) ── */}
-          <div className="absolute bottom-0 left-0 bg-[#FAF8F5] rounded-tr-[40px] pr-12 pt-10 z-10">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-8">
-              <p className="text-[#0B1220]/60 text-[16px] lg:text-[18px] font-medium max-w-[300px] leading-relaxed">
+          <div className="absolute bottom-0 left-0 bg-[#FAF8F5] rounded-tr-[40px] pr-8 pt-6 lg:pr-12 lg:pt-10 z-10 w-full lg:w-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6 lg:gap-8">
+              <p className="text-[#0B1220]/60 text-[15px] lg:text-[18px] font-medium max-w-full sm:max-w-[300px] leading-relaxed text-balance">
                 Protect project margins with AI-powered scope enforcement.
               </p>
               <Link
                 href="/waitlist"
-                className="bg-[#0B1220] text-white px-9 py-4 rounded-full text-base font-bold hover:bg-[#0F172A] hover:scale-[1.02] transition-all duration-300 shadow-xl hover:shadow-2xl whitespace-nowrap"
+                className="bg-[#0B1220] text-white px-8 lg:px-9 py-4 rounded-full text-base font-bold hover:bg-[#0F172A] hover:scale-[1.02] transition-all duration-300 shadow-xl hover:shadow-2xl whitespace-nowrap text-center"
               >
                 Join Waitlist
               </Link>
             </div>
             
             {/* Organic Fillets */}
-            <Fillet position="bl" className="-top-[40px] left-0" />
-            <Fillet position="bl" className="bottom-0 -right-[40px]" />
+            <Fillet position="bl" className="hidden lg:block -top-[40px] left-0" />
+            <Fillet position="bl" className="hidden lg:block bottom-0 -right-[40px]" />
           </div>
 
           {/* ── Bottom Right Floating Elements (Over Video) ── */}

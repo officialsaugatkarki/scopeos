@@ -24,27 +24,27 @@ export default function Header() {
   // This header only appears when scrolled past the hero section
   return (
     <header
-      className={`fixed top-4 inset-x-0 z-50 flex justify-center transition-all duration-500 ${
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 bg-[#FAF8F5]/95 backdrop-blur-xl border-b border-black/5 shadow-sm ${
         scrolled
           ? 'opacity-100 translate-y-0 pointer-events-auto'
-          : 'opacity-0 -translate-y-8 pointer-events-none'
+          : 'opacity-0 -translate-y-4 pointer-events-none'
       }`}
     >
-      <div className="bg-[#FAF8F5]/90 backdrop-blur-xl border border-black/5 shadow-2xl rounded-full px-4 py-2 flex items-center gap-6">
+      <div className="w-full max-w-[1760px] mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-1.5 shrink-0">
-          <span className="font-black text-lg tracking-tight text-[#0B1220] leading-none">
+          <span className="font-black text-xl tracking-tight text-[#0B1220] leading-none">
             Scope<span className="text-[#3B82F6]">OS</span>
           </span>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-2">
           {navLinks.map((link, i) => (
             <Link
               key={i}
               href={link.href}
-              className="text-sm font-bold text-[#0B1220]/60 hover:text-[#0B1220] transition-colors duration-200 px-3 py-1.5 rounded-full hover:bg-black/5"
+              className="text-sm font-bold text-[#0B1220]/60 hover:text-[#0B1220] transition-colors duration-200 px-4 py-2 rounded-full hover:bg-black/5"
             >
               {link.label}
             </Link>
@@ -52,10 +52,16 @@ export default function Header() {
         </nav>
 
         {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-2 pl-2 border-l border-black/5">
+        <div className="hidden md:flex items-center gap-4">
+          <Link
+            href="/login"
+            className="text-sm font-bold text-[#0B1220]/60 hover:text-[#0B1220] transition-colors"
+          >
+            Login
+          </Link>
           <Link
             href="/waitlist"
-            className="text-sm font-bold px-5 py-2.5 rounded-full bg-[#0B1220] text-white hover:bg-[#0F172A] hover:scale-105 transition-all duration-300 shadow-md"
+            className="text-sm font-bold px-6 py-3 rounded-full bg-[#0B1220] text-white hover:bg-[#0F172A] hover:scale-105 transition-all duration-300 shadow-md"
           >
             Join Waitlist
           </Link>
@@ -63,10 +69,10 @@ export default function Header() {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden relative w-8 h-8 rounded-full flex items-center justify-center text-[#0B1220] hover:bg-black/5 transition-all duration-200"
+          className="md:hidden relative w-10 h-10 rounded-full flex items-center justify-center text-[#0B1220] hover:bg-black/5 transition-all duration-200"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 

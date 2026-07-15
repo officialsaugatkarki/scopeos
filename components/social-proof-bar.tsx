@@ -11,7 +11,7 @@ export default function SocialProofBar() {
 
   return (
     <section className="lp-section-white py-14 px-4 sm:px-6 lg:px-8 border-b border-[#E2E8F4]">
-      <div className="max-w-5xl mx-auto text-center">
+      <div className="max-w-[1760px] mx-auto text-center">
         <p className="text-xs font-semibold tracking-[0.18em] uppercase text-[#94A3B8] mb-8">
           Trusted by leading development agencies
         </p>

@@ -1,86 +1,96 @@
 'use client'
 
-import { AlertCircle, Zap, ShieldCheck } from 'lucide-react'
+import { Search, MessageSquare, GitBranch, ArrowRight } from 'lucide-react'
 
 export default function ProblemSolution() {
+
   return (
-    <section className="py-24 px-6 relative z-10">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-6 md:p-12 lg:gap-20 items-center">
-          
-          {/* The Problem */}
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold tracking-widest uppercase">
-              <AlertCircle className="w-3.5 h-3.5" />
-              The Problem
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.2]">
-              Agencies lose 20% of their margin to unbilled scope creep.
-            </h2>
-            <p className="text-white/60 text-lg leading-relaxed">
-              When clients ask for "one small change" over email or Slack, it rarely gets billed. It damages your margin, delays the project, and frustrates your team.
-            </p>
-          </div>
-
-          {/* The Solution */}
-          <div 
-            className="p-8 md:p-10 rounded-[2rem] relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(59,130,246,0.08) 100%)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-            }}
-          >
-            <div className="absolute top-0 right-0 p-6 opacity-20">
-              <ShieldCheck className="w-32 h-32 text-blue-400" />
-            </div>
-            
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold tracking-widest uppercase mb-6">
-                <Zap className="w-3.5 h-3.5" />
-                The Solution
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">
-                Automate scope protection with AI.
-              </h3>
-              <p className="text-white/70 leading-relaxed mb-8">
-                ScopeOS sits between you and your clients. It automatically analyzes incoming requests against the original contract, flags out-of-scope work, and drafts change orders instantly.
-              </p>
-              
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shrink-0">
-                    <CheckIcon className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <span className="text-white/80 font-medium text-sm">Protect your profit margins</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shrink-0">
-                    <CheckIcon className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <span className="text-white/80 font-medium text-sm">Remove emotion from client pushback</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shrink-0">
-                    <CheckIcon className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <span className="text-white/80 font-medium text-sm">Turn unbilled requests into revenue</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
+    <section className="py-28 px-6 relative z-10 bg-[#F5F3EE]">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Section Label */}
+        <div className="text-center mb-4">
+          <span className="lp-badge">HOW IT WORKS</span>
         </div>
+
+        {/* Main Heading */}
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#0C1425] text-center mb-6 tracking-tight leading-[1.08]">
+          Stop scope creep.<br />
+          <span className="text-[#3B82F6]">Start protecting revenue.</span>
+        </h2>
+        <p className="text-center text-[rgba(12,20,37,0.5)] text-lg max-w-2xl mx-auto mb-20 leading-relaxed">
+          Every client request is analyzed by AI before development begins. ScopeOS detects changes, asks clarifying questions, and ensures requirements are clear.
+        </p>
+
+        {/* Steps */}
+        <div className="space-y-0">
+          {/* Step 1 */}
+          <div className="flex gap-6 group">
+            <div className="flex flex-col items-center">
+              <div className="lp-step-circle shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <Search className="w-5 h-5" />
+              </div>
+              <div className="w-px flex-1 bg-[rgba(12,20,37,0.06)] my-3" />
+            </div>
+            <div className="flex-1 pb-12">
+              <h3 className="text-xl font-bold text-[#0C1425] mb-3">Client requests are automatically analyzed</h3>
+              <p className="text-[rgba(12,20,37,0.5)] text-sm mb-5 leading-relaxed max-w-lg">
+                When a client submits a change request — via email, Slack, or the portal — ScopeOS immediately analyzes scope, impact, and risk.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { name: 'Scope Detection', desc: 'Identifies whether the request is new work, a change, or within the original scope.' },
+                  { name: 'Impact Analysis', desc: 'Estimates timeline, cost, and complexity changes before any work begins.' },
+                  { name: 'Risk Scoring', desc: 'Flags requests that could lead to scope creep or margin erosion.' },
+                ].map((tool, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-white border border-[rgba(12,20,37,0.06)] shadow-[0_1px_3px_rgba(12,20,37,0.03)] hover:shadow-[0_2px_8px_rgba(12,20,37,0.06)] transition-shadow duration-300">
+                    <div className="font-bold text-[#3B82F6] text-sm mb-2">{tool.name}</div>
+                    <p className="text-[rgba(12,20,37,0.45)] text-xs leading-relaxed">{tool.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="flex gap-6 group">
+            <div className="flex flex-col items-center">
+              <div className="lp-step-circle shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div className="w-px flex-1 bg-[rgba(12,20,37,0.06)] my-3" />
+            </div>
+            <div className="flex-1 pb-12">
+              <h3 className="text-xl font-bold text-[#0C1425] mb-3">AI asks the right clarifying questions</h3>
+              <p className="text-[rgba(12,20,37,0.5)] text-sm leading-relaxed max-w-lg">
+                Before your team responds, ScopeOS generates targeted questions to surface hidden requirements and prevent misunderstandings — ensuring nothing is left ambiguous.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="flex gap-6 group">
+            <div className="flex flex-col items-center">
+              <div className="lp-step-circle shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <GitBranch className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="flex-1 pb-4">
+              <h3 className="text-xl font-bold text-[#0C1425] mb-3">Change requests are generated automatically</h3>
+              <p className="text-[rgba(12,20,37,0.5)] text-sm leading-relaxed max-w-lg mb-6">
+                ScopeOS creates a formal change request with pricing, timeline updates, and client approval workflows — so you never do free work again.
+              </p>
+              <a
+                href="/how-it-works"
+                className="inline-flex items-center gap-2 text-[#3B82F6] text-sm font-semibold hover:gap-3 transition-all duration-300"
+              >
+                See the full process <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
-  )
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
   )
 }

@@ -47,28 +47,26 @@ export default function HowItWorks() {
     <section
       id="how-it-works"
       ref={ref}
-      className="py-28 px-4 sm:px-6 lg:px-8 relative z-10"
+      className="py-28 px-4 sm:px-6 lg:px-8 relative z-10 bg-[#F5F3EE]"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-[1760px] mx-auto">
 
         {/* Section Header */}
         <div className="text-center mb-20">
           <div
-            className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase text-blue-400"
+            className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase text-[#3B82F6]"
             style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}
           >
             How it works
           </div>
           <h2
-            className="font-black text-white text-balance mb-5"
+            className="font-black text-[#0C1425] text-balance mb-5"
             style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', lineHeight: 1.1, letterSpacing: '-0.03em' }}
           >
             Up and running{' '}
-            <span style={{ background: 'linear-gradient(135deg, #60A5FA 0%, #93C5FD 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              in 10 minutes
-            </span>
+            <span className="lp-gradient-text-blue">in 10 minutes</span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto text-balance" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          <p className="text-lg max-w-2xl mx-auto text-balance text-[rgba(12,20,37,0.5)]">
             Four simple steps to eliminate scope creep and protect your margins permanently.
           </p>
         </div>
@@ -98,62 +96,48 @@ export default function HowItWorks() {
                 {/* Icon circle */}
                 <div className="relative mb-6">
                   <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center"
+                    className="w-16 h-16 rounded-full flex items-center justify-center bg-white border border-[rgba(12,20,37,0.06)] shadow-[0_4px_12px_rgba(12,20,37,0.04)]"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      backdropFilter: 'blur(16px)',
-                      WebkitBackdropFilter: 'blur(16px)',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                       transform: isVisible ? 'scale(1)' : 'scale(0.5)',
                       transition: `transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${index * 120 + 100}ms`,
                     }}
                   >
-                    <Icon className="w-6 h-6 text-blue-400" />
+                    <Icon className="w-6 h-6 text-[#3B82F6]" />
                   </div>
-                  <span className="absolute -top-1 -right-1 text-[9px] font-black text-white bg-blue-500 px-1.5 py-0.5 rounded-full">
+                  <span className="absolute -top-1 -right-1 text-[9px] font-black text-white bg-[#3B82F6] px-1.5 py-0.5 rounded-full">
                     {step.number}
                   </span>
                 </div>
 
-                <h3 className="font-bold text-white text-[15px] mb-2 tracking-tight">{step.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{step.description}</p>
+                <h3 className="font-bold text-[#0C1425] text-[15px] mb-2 tracking-tight">{step.title}</h3>
+                <p className="text-sm leading-relaxed text-[rgba(12,20,37,0.5)]">{step.description}</p>
               </div>
             )
           })}
         </div>
 
-        {/* Client Portal Preview — Dark Glass Panel */}
+        {/* Client Portal Preview — Light Card */}
         <div
           className={`transition-all duration-1000 delay-700 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}
         >
-          <p className="text-center text-xs font-bold tracking-widest uppercase mb-8" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-center text-xs font-bold tracking-widest uppercase mb-8 text-[rgba(12,20,37,0.3)]">
             Client Experience
           </p>
 
-          <div
-            className="rounded-[2rem] overflow-hidden"
-            style={{
-              background: 'rgba(255, 255, 255, 0.02)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-            }}
-          >
+          <div className="rounded-[2rem] overflow-hidden bg-[#0C1425] border border-[rgba(245,243,238,0.08)] shadow-[0_24px_80px_rgba(12,20,37,0.25)]">
             {/* Portal Header */}
-            <div className="px-6 py-4 flex items-center justify-between border-b border-white/10">
+            <div className="px-6 py-4 flex items-center justify-between border-b border-[rgba(245,243,238,0.06)]">
               <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#2563EB] to-[#1A56DB] flex items-center justify-center shadow-sm">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-sm">
                   <span className="text-white font-bold text-xs">SO</span>
                 </div>
-                <span className="text-white text-sm font-semibold">Client Portal — Acme Corp</span>
+                <span className="text-[rgba(245,243,238,0.8)] text-sm font-semibold">Client Portal — Acme Corp</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="text-white/50 text-xs font-medium">Active</span>
+                <span className="text-[rgba(245,243,238,0.4)] text-xs font-medium">Active</span>
               </div>
             </div>
 
@@ -161,43 +145,40 @@ export default function HowItWorks() {
             <div className="p-6 space-y-4">
               {/* Client message */}
               <div className="flex justify-end">
-                <div className="max-w-sm rounded-2xl rounded-br-sm px-4 py-3 bg-blue-600/20 border border-blue-500/30">
-                  <p className="text-white/90 text-sm">Can we add a dark mode to the app? Also want push notifications.</p>
-                  <p className="text-blue-200/50 text-xs mt-1">2 min ago</p>
+                <div className="max-w-sm rounded-2xl rounded-br-sm px-4 py-3 bg-[rgba(59,130,246,0.15)] border border-[rgba(59,130,246,0.3)]">
+                  <p className="text-[rgba(245,243,238,0.9)] text-sm">Can we add a dark mode to the app? Also want push notifications.</p>
+                  <p className="text-[rgba(59,130,246,0.4)] text-xs mt-1">2 min ago</p>
                 </div>
               </div>
 
               {/* AI response */}
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2563EB] to-[#1A56DB] flex items-center justify-center shrink-0 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shrink-0 shadow-sm">
                   <span className="text-white text-xs font-bold">AI</span>
                 </div>
-                <div
-                  className="max-w-sm rounded-2xl rounded-bl-sm px-4 py-3"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                >
-                  <p className="text-white/90 text-sm mb-3">
+                <div className="max-w-sm rounded-2xl rounded-bl-sm px-4 py-3 bg-[rgba(245,243,238,0.03)] border border-[rgba(245,243,238,0.06)]">
+                  <p className="text-[rgba(245,243,238,0.9)] text-sm mb-3">
                     I analyzed your request against your project scope. Here's what I found:
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✓ In Scope</span>
-                      <span className="text-white/50 text-xs">Push notifications (Phase 2 spec §3.4)</span>
+                      <span className="text-[rgba(245,243,238,0.5)] text-xs">Push notifications (Phase 2 spec §3.4)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">⚡ Change Request</span>
-                      <span className="text-white/50 text-xs">Dark mode — not in original scope</span>
+                      <span className="text-[rgba(245,243,238,0.5)] text-xs">Dark mode — not in original scope</span>
                     </div>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-white/10">
-                    <p className="text-white/40 text-xs">Change request draft ready • Est. 18hrs • $2,700</p>
+                  <div className="mt-3 pt-3 border-t border-[rgba(245,243,238,0.06)]">
+                    <p className="text-[rgba(245,243,238,0.35)] text-xs">Change request draft ready • Est. 18hrs • $2,700</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <p className="text-center text-sm mt-6 font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-center text-sm mt-6 font-medium text-[rgba(12,20,37,0.3)]">
             ↑ Client portal — clear scope decisions, zero ambiguity
           </p>
         </div>
